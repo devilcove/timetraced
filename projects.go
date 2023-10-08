@@ -51,11 +51,8 @@ func GetProject(c *gin.Context) {
 }
 
 func Start(c *gin.Context) {
-	request := models.StartRequest{}
-	if err := c.BindJSON(&request); err != nil {
-		ProcessError(c, http.StatusBadRequest, "could not decode into json "+err.Error())
-	}
-	project, err := database.GetProject(request.Project)
+	p := c.Param("name")
+	project, err := database.GetProject(p)
 	if err != nil {
 		ProcessError(c, http.StatusInternalServerError, "error reading project "+err.Error())
 		return
@@ -71,7 +68,7 @@ func Start(c *gin.Context) {
 	}
 	record := models.Record{
 		ID:      uuid.New(),
-		Project: request.Project,
+		Project: p,
 		Start:   time.Now(),
 	}
 	if err := database.SaveRecord(&record); err != nil {

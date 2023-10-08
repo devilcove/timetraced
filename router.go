@@ -39,7 +39,7 @@ func SetupRouter() *gin.Engine {
 		projects.GET("", GetProjects)
 		projects.POST("", AddProject)
 		projects.GET("/:name", GetProject)
-		projects.POST("/start", Start)
+		projects.POST("/:name/start", Start)
 		projects.POST("/stop", Stop)
 		projects.GET("/status", Status)
 	}
