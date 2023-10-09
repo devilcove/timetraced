@@ -7,7 +7,7 @@ import (
 	"github.com/devilcove/timetraced/models"
 )
 
-func GetStatus() (models.StatusResponse, error) {
+func getStatus() (models.StatusResponse, error) {
 	durations := make(map[string]time.Duration)
 	status := models.Status{}
 	response := models.StatusResponse{}
@@ -15,7 +15,7 @@ func GetStatus() (models.StatusResponse, error) {
 	if err != nil {
 		return response, err
 	}
-	today := TruncateToStart(time.Now())
+	today := truncateToStart(time.Now())
 	for _, record := range records {
 		if record.Start.Before(today) {
 			continue
@@ -42,9 +42,9 @@ func GetStatus() (models.StatusResponse, error) {
 	return response, nil
 }
 
-func TruncateToStart(t time.Time) time.Time {
+func truncateToStart(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
-func TruncateToEnd(t time.Time) time.Time {
+func truncateToEnd(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, t.Location())
 }

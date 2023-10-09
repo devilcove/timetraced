@@ -16,16 +16,16 @@ import (
 
 const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 
-func Login(c *gin.Context) {
+func login(c *gin.Context) {
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
-		ProcessError(c, http.StatusBadRequest, "invalid user")
+		processError(c, http.StatusBadRequest, "invalid user")
 		log.Println("bind err", err)
 		return
 	}
 	log.Println("login by", user)
-	if !ValidateUser(&user) {
-		ProcessError(c, http.StatusBadRequest, "invalid user")
+	if !validateUser(&user) {
+		processError(c, http.StatusBadRequest, "invalid user")
 		log.Println("validation error")
 		return
 	}
@@ -39,19 +39,19 @@ func Login(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func ValidateUser(visitor *models.User) bool {
+func validateUser(visitor *models.User) bool {
 	user, err := database.GetUser(visitor.Username)
 
 	if err != nil {
 		return false
 	}
-	if visitor.Username == user.Username && CheckPassword(visitor, &user) {
+	if visitor.Username == user.Username && checkPassword(visitor, &user) {
 		return true
 	}
 	return false
 }
 
-func CheckPassword(plain, hash *models.User) bool {
+func checkPassword(plain, hash *models.User) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash.Password), []byte(plain.Password))
 	if err != nil {
 		log.Println("bcrypt", err)
@@ -59,7 +59,7 @@ func CheckPassword(plain, hash *models.User) bool {
 	return err == nil
 }
 
-func Logout(c *gin.Context) {
+func logout(c *gin.Context) {
 	session := sessions.Default(c)
 	//delete cookie
 	session.Options(sessions.Options{MaxAge: -1})
@@ -70,32 +70,32 @@ func Logout(c *gin.Context) {
 	//c.Redirect(http.StatusFound, location.RequestURI())
 }
 
-func New(c *gin.Context) {
+func new(c *gin.Context) {
 	var user models.User
 	var err error
 	if err := c.BindJSON(&user); err != nil {
-		ProcessError(c, http.StatusBadRequest, "could not decode request into json")
+		processError(c, http.StatusBadRequest, "could not decode request into json")
 		return
 	}
 	users, err := database.GetAllUsers()
 	pretty.Println(err, users)
 	if err == nil {
-		ProcessError(c, http.StatusBadRequest, "user exists")
+		processError(c, http.StatusBadRequest, "user exists")
 		return
 	}
 	pretty.Println(user)
 	if user.Username == "" || user.Password == "" {
-		ProcessError(c, http.StatusBadRequest, "username or password cannot be blank")
+		processError(c, http.StatusBadRequest, "username or password cannot be blank")
 		return
 	}
 	user.Password, err = hashPassword(user.Password)
 	user.ID = uuid.New()
 	if err != nil {
-		ProcessError(c, http.StatusInternalServerError, err.Error())
+		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	if err := database.SaveUser(&user); err != nil {
-		ProcessError(c, http.StatusInternalServerError, err.Error())
+		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	location := url.URL{Path: "/"}

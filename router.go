@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter() *gin.Engine {
+func setupRouter() *gin.Engine {
 	secret, ok := os.LookupEnv("SESSON_SECRET")
 	if !ok {
 		secret = "secret"
@@ -32,21 +32,21 @@ func SetupRouter() *gin.Engine {
 	}))
 	router.Use(session)
 	//router.POST("/newuser", New)
-	router.POST("/login", Login)
-	router.GET("/logout", Logout)
+	router.POST("/login", login)
+	router.GET("/logout", logout)
 	projects := router.Group("/projects", auth)
 	{
-		projects.GET("", GetProjects)
-		projects.POST("", AddProject)
-		projects.GET("/:name", GetProject)
-		projects.POST("/:name/start", Start)
-		projects.POST("/stop", Stop)
-		projects.GET("/status", Status)
+		projects.GET("", getProjects)
+		projects.POST("", addProject)
+		projects.GET("/:name", getProject)
+		projects.POST("/start", start)
+		projects.POST("/stop", stop)
+		projects.GET("/status", status)
 	}
 	return router
 }
 
-func ProcessError(c *gin.Context, status int, message string) {
+func processError(c *gin.Context, status int, message string) {
 	session := sessions.Default(c)
 	session.Set("message", message)
 	session.Save()

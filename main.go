@@ -40,7 +40,7 @@ func main() {
 	database.InitializeDatabase()
 	defer database.Close()
 	checkDefaultUser()
-	router := SetupRouter()
+	router := setupRouter()
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
