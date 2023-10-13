@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/devilcove/timetraced/database"
@@ -11,26 +12,30 @@ func getStatus() (models.StatusResponse, error) {
 	durations := make(map[string]time.Duration)
 	status := models.Status{}
 	response := models.StatusResponse{}
-	records, err := database.GetAllRecords()
+	records, err := database.GetTodaysRecords()
 	if err != nil {
 		return response, err
 	}
-	today := truncateToStart(time.Now())
+	status.Current = models.Tracked()
 	for _, record := range records {
-		if record.Start.Before(today) {
-			continue
-		}
+		fmt.Println("processing record", record.Project)
 		if record.End.IsZero() {
-			status.Current = record.Project
 			record.End = time.Now()
 			status.Elapsed = record.Duration()
 		}
 		durations[record.Project] = durations[record.Project] + record.End.Sub(record.Start)
-		status.Total = status.Total + record.Duration()
+		status.DailyTotal = status.DailyTotal + record.Duration()
+		fmt.Println("adding to daily total", record.Project, record.Duration(), status.DailyTotal)
+		if record.Project == status.Current {
+			fmt.Println("adding to current total", record.Project, record.Duration(), status.Total)
+			status.Total = status.Total + record.Duration()
+
+		}
 	}
 	response.Current = status.Current
 	response.Elapsed = models.FmtDuration(status.Elapsed)
-	response.Total = models.FmtDuration(status.Total)
+	response.CurrentTotal = models.FmtDuration(status.Total)
+	response.DailyTotal = models.FmtDuration(status.DailyTotal)
 	for k := range durations {
 		value := models.FmtDuration(durations[k])
 		duration := models.Duration{
@@ -40,11 +45,4 @@ func getStatus() (models.StatusResponse, error) {
 		response.Durations = append(response.Durations, duration)
 	}
 	return response, nil
-}
-
-func truncateToStart(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-}
-func truncateToEnd(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, t.Location())
 }

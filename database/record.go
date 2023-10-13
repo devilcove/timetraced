@@ -2,6 +2,7 @@ package database
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/devilcove/timetraced/models"
 	"github.com/google/uuid"
@@ -59,4 +60,33 @@ func DeleteRecord(id uuid.UUID) error {
 		return err
 	}
 	return nil
+}
+
+func GetTodaysRecords() ([]models.Record, error) {
+	records := []models.Record{}
+	record := models.Record{}
+	today := truncateToStart(time.Now())
+	if err := db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(RECORDS_TABLE_NAME))
+		b.ForEach(func(k, v []byte) error {
+			if err := json.Unmarshal(v, &record); err != nil {
+				return err
+			}
+			if record.Start.After(today) {
+				records = append(records, record)
+			}
+			return nil
+		})
+		return nil
+	}); err != nil {
+		return records, err
+	}
+	return records, nil
+}
+
+func truncateToStart(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}
+func truncateToEnd(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, t.Location())
 }

@@ -44,14 +44,16 @@ func FmtDuration(d time.Duration) string {
 }
 
 type StatusResponse struct {
-	Current   string
-	Elapsed   string
-	Total     string
-	Durations []Duration
+	Current      string
+	Elapsed      string
+	CurrentTotal string
+	DailyTotal   string
+	Durations    []Duration
 }
 
 type Status struct {
-	Current string
-	Elapsed time.Duration
-	Total   time.Duration
+	Current    string
+	Elapsed    time.Duration
+	Total      time.Duration
+	DailyTotal time.Duration
 }

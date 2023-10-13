@@ -8,7 +8,7 @@ import (
 
 var (
 	trackingActive bool
-	trackedProject *string
+	trackedProject string
 )
 
 type Project struct {
@@ -28,10 +28,14 @@ func IsTrackingActive() bool {
 
 func TrackingActive(p Project) {
 	trackingActive = true
-	trackedProject = &p.Name
+	trackedProject = p.Name
 }
 
 func TrackingInactive() {
 	trackingActive = false
-	trackedProject = nil
+	trackedProject = ""
+}
+
+func Tracked() string {
+	return trackedProject
 }

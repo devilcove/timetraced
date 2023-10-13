@@ -29,6 +29,7 @@ import (
 	"log/slog"
 
 	"github.com/devilcove/timetraced/database"
+	"github.com/devilcove/timetraced/models"
 )
 
 func main() {
@@ -40,6 +41,12 @@ func main() {
 	database.InitializeDatabase()
 	defer database.Close()
 	checkDefaultUser()
+	project := database.GetActiveProject()
+	if project != nil {
+		models.TrackingActive(*project)
+	} else {
+		models.TrackingInactive()
+	}
 	router := setupRouter()
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal(err)

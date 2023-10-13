@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 
@@ -43,6 +44,7 @@ func validateUser(visitor *models.User) bool {
 	user, err := database.GetUser(visitor.Username)
 
 	if err != nil {
+		slog.Error("no such user", "user", visitor.Username, "error", err)
 		return false
 	}
 	if visitor.Username == user.Username && checkPassword(visitor, &user) {
