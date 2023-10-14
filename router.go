@@ -54,9 +54,6 @@ func setupRouter() *gin.Engine {
 }
 
 func processError(c *gin.Context, status int, message string) {
-	session := sessions.Default(c)
-	session.Set("message", message)
-	session.Save()
 	c.JSON(status, gin.H{"message": message})
 	c.Abort()
 }

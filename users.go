@@ -18,6 +18,7 @@ import (
 const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 
 func login(c *gin.Context) {
+	session := sessions.Default(c)
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
 		processError(c, http.StatusBadRequest, "invalid user")
@@ -26,11 +27,12 @@ func login(c *gin.Context) {
 	}
 	log.Println("login by", user)
 	if !validateUser(&user) {
+		session.Clear()
+		session.Save()
 		processError(c, http.StatusBadRequest, "invalid user")
 		log.Println("validation error")
 		return
 	}
-	session := sessions.Default(c)
 	session.Set("loggedin", true)
 	session.Set("user", user.Username)
 	session.Set("admin", true)
@@ -64,12 +66,9 @@ func checkPassword(plain, hash *models.User) bool {
 func logout(c *gin.Context) {
 	session := sessions.Default(c)
 	//delete cookie
-	session.Options(sessions.Options{MaxAge: -1})
 	session.Clear()
 	session.Save()
 	c.Status(http.StatusNoContent)
-	//location := url.URL{Path: "/"}
-	//c.Redirect(http.StatusFound, location.RequestURI())
 }
 
 func addUser(c *gin.Context) {
