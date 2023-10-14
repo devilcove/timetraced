@@ -3,14 +3,13 @@ package models
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	ID       uuid.UUID
 	Username string
 	Password string
+	IsAdmin  bool
 	Updated  time.Time
 }
 

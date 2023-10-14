@@ -32,6 +32,13 @@ func setupRouter() *gin.Engine {
 	}))
 	router.Use(session)
 	//router.POST("/newuser", New)
+	users := router.Group("/users", auth)
+	{
+		users.GET("", getUsers)
+		users.POST("", addUser)
+		users.PUT("", editUser)
+		users.DELETE(":name", deleteUser)
+	}
 	router.POST("/login", login)
 	router.GET("/logout", logout)
 	projects := router.Group("/projects", auth)
@@ -91,6 +98,7 @@ func checkDefaultUser() {
 	database.SaveUser(&models.User{
 		Username: user,
 		Password: password,
+		IsAdmin:  true,
 		Updated:  time.Now(),
 	})
 	log.Println("default user created")
