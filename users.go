@@ -162,10 +162,12 @@ func getUsers(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+	returnedUser := []models.User{}
 	for _, user := range users {
 		user.Password = ""
+		returnedUser = append(returnedUser, user)
 	}
-	c.JSON(http.StatusOK, users)
+	c.JSON(http.StatusOK, returnedUser)
 }
 
 func hashPassword(password string) (string, error) {
