@@ -30,15 +30,19 @@ import (
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
+	"github.com/joho/godotenv"
 	sloggin "github.com/samber/slog-gin"
 )
 
 func main() {
-	port, ok := os.LookupEnv("port")
+	logger := setLogging()
+	if err := godotenv.Load(); err != nil {
+		slog.Error("read environment", "error", err)
+	}
+	port, ok := os.LookupEnv("PORT")
 	if !ok {
 		port = "8080"
 	}
-	logger := setLogging()
 	database.InitializeDatabase()
 	defer database.Close()
 	checkDefaultUser()

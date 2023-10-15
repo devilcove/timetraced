@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -15,14 +16,15 @@ import (
 )
 
 func setupRouter() *gin.Engine {
-	secret, ok := os.LookupEnv("SESSON_SECRET")
+	gin.SetMode(gin.ReleaseMode)
+	secret, ok := os.LookupEnv("SESSION_SECRET")
 	if !ok {
 		secret = "secret"
 	}
 	store := cookie.NewStore([]byte(secret))
 	session := sessions.Sessions("time", store)
-	router := gin.Default()
-	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+	router.SetTrustedProxies(nil)
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "DELETE"},
@@ -31,7 +33,7 @@ func setupRouter() *gin.Engine {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-	router.Use(session)
+	router.Use(gin.Recovery(), session)
 	users := router.Group("/users", auth)
 	{
 		users.GET("", getUsers)
@@ -79,7 +81,7 @@ func checkDefaultUser() {
 		log.Fatal(err)
 	}
 	if len(users) > 1 {
-		log.Println("user exists")
+		slog.Debug("user exists")
 		return
 	}
 	if user == "" {
