@@ -134,7 +134,7 @@ func editUser(c *gin.Context) {
 		updatedUser.IsAdmin = false
 	}
 	updatedUser.Updated = time.Now()
-	if err := database.SaveUser(&user); err != nil {
+	if err := database.SaveUser(&updatedUser); err != nil {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
