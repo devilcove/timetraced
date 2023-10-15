@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"time"
@@ -11,7 +9,6 @@ import (
 	"github.com/devilcove/timetraced/models"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/kr/pretty"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,15 +19,15 @@ func login(c *gin.Context) {
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
 		processError(c, http.StatusBadRequest, "invalid user")
-		log.Println("bind err", err)
+		slog.Error("bind err", "error", err)
 		return
 	}
-	log.Println("login by", user)
+	slog.Debug("login by", "user", user)
 	if !validateUser(&user) {
 		session.Clear()
 		session.Save()
 		processError(c, http.StatusBadRequest, "invalid user")
-		log.Println("validation error")
+		slog.Warn("validation error", "user", user.Username)
 		return
 	}
 	session.Set("loggedin", true)
@@ -39,12 +36,12 @@ func login(c *gin.Context) {
 	session.Options(sessions.Options{MaxAge: SessionAge, Secure: true, SameSite: http.SameSiteLaxMode})
 	session.Save()
 	user.Password = ""
+	slog.Info("login", "user", user.Username)
 	c.JSON(http.StatusOK, user)
 }
 
 func validateUser(visitor *models.User) bool {
 	user, err := database.GetUser(visitor.Username)
-
 	if err != nil {
 		slog.Error("no such user", "user", visitor.Username, "error", err)
 		return false
@@ -59,13 +56,14 @@ func validateUser(visitor *models.User) bool {
 func checkPassword(plain, hash *models.User) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash.Password), []byte(plain.Password))
 	if err != nil {
-		log.Println("bcrypt", err)
+		slog.Debug("bcrypt", "error", err)
 	}
 	return err == nil
 }
 
 func logout(c *gin.Context) {
 	session := sessions.Default(c)
+	slog.Info("logout", "user", session.Get("user"))
 	//delete cookie
 	session.Clear()
 	session.Save()
@@ -84,13 +82,10 @@ func addUser(c *gin.Context) {
 		processError(c, http.StatusBadRequest, "could not decode request into json")
 		return
 	}
-	users, err := database.GetUser(user.Username)
-	pretty.Println(err, users)
-	if err == nil {
+	if _, err := database.GetUser(user.Username); err != nil {
 		processError(c, http.StatusBadRequest, "user exists")
 		return
 	}
-	pretty.Println(user)
 	if user.Username == "" || user.Password == "" {
 		processError(c, http.StatusBadRequest, "username or password cannot be blank")
 		return
@@ -104,6 +99,7 @@ func addUser(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+	slog.Info("new user added", "user", user.Username)
 	c.JSON(http.StatusNoContent, nil)
 }
 
@@ -119,6 +115,7 @@ func editUser(c *gin.Context) {
 	}
 	if user.Username != visitor && !admin.(bool) {
 		processError(c, http.StatusUnauthorized, "you are not authorized to edit this user")
+		return
 	}
 	updatedUser, err := database.GetUser(user.Username)
 	if err != nil {
@@ -139,6 +136,7 @@ func editUser(c *gin.Context) {
 		return
 	}
 	updatedUser.Password = ""
+	slog.Info("user updated", "user", updatedUser.Username)
 	c.JSON(http.StatusOK, updatedUser)
 }
 
@@ -146,9 +144,9 @@ func deleteUser(c *gin.Context) {
 	session := sessions.Default(c)
 	admin := session.Get("admin")
 	user := c.Param("name")
-	fmt.Println("admin status is --------------------------", admin)
 	if !admin.(bool) {
 		processError(c, http.StatusUnauthorized, "you are not authorized to delete this user")
+		return
 	}
 	if _, err := database.GetUser(user); err != nil {
 		processError(c, http.StatusBadRequest, "user does not exist")
@@ -158,6 +156,7 @@ func deleteUser(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+	slog.Info("deleted", "user", user)
 	c.JSON(http.StatusNoContent, nil)
 }
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/devilcove/timetraced/database"
@@ -18,18 +17,14 @@ func getStatus() (models.StatusResponse, error) {
 	}
 	status.Current = models.Tracked()
 	for _, record := range records {
-		fmt.Println("processing record", record.Project)
 		if record.End.IsZero() {
 			record.End = time.Now()
 			status.Elapsed = record.Duration()
 		}
 		durations[record.Project] = durations[record.Project] + record.End.Sub(record.Start)
 		status.DailyTotal = status.DailyTotal + record.Duration()
-		fmt.Println("adding to daily total", record.Project, record.Duration(), status.DailyTotal)
 		if record.Project == status.Current {
-			fmt.Println("adding to current total", record.Project, record.Duration(), status.Total)
 			status.Total = status.Total + record.Duration()
-
 		}
 	}
 	response.Current = status.Current

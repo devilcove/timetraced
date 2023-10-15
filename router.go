@@ -63,9 +63,6 @@ func processError(c *gin.Context, status int, message string) {
 func auth(c *gin.Context) {
 	session := sessions.Default(c)
 	loggedIn := session.Get("loggedin")
-	message := session.Get("message")
-	user := session.Get("user")
-	log.Println("auth", loggedIn, user, message)
 	if loggedIn != true {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid credentials"})
 		c.Abort()

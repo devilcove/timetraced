@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -38,6 +38,7 @@ func addProject(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, "error saving project "+err.Error())
 		return
 	}
+	slog.Info("added", "project", project.Name)
 	c.JSON(http.StatusOK, project)
 }
 func getProject(c *gin.Context) {
@@ -76,6 +77,7 @@ func start(c *gin.Context) {
 		return
 	}
 	models.TrackingActive(project)
+	slog.Info("tracking started", "project", project.Name)
 	c.JSON(http.StatusOK, project)
 }
 
@@ -88,10 +90,11 @@ func stopE() error {
 		if record.End.IsZero() {
 			record.End = time.Now()
 			if err := database.SaveRecord(&record); err != nil {
-				log.Println("failed to save updated record", err)
+				slog.Error("failed to save updated record", "error", err)
 			}
 		}
 	}
+	slog.Info("tracking stopped", "project", models.Tracked())
 	models.TrackingInactive()
 	return nil
 }
