@@ -30,6 +30,7 @@ import (
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
+	sloggin "github.com/samber/slog-gin"
 )
 
 func main() {
@@ -37,7 +38,7 @@ func main() {
 	if !ok {
 		port = "8080"
 	}
-	setLogging()
+	logger := setLogging()
 	database.InitializeDatabase()
 	defer database.Close()
 	checkDefaultUser()
@@ -48,12 +49,13 @@ func main() {
 		models.TrackingInactive()
 	}
 	router := setupRouter()
+	router.Use(sloggin.New(logger))
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func setLogging() {
+func setLogging() *slog.Logger {
 	logLevel := &slog.LevelVar{}
 	replace := func(groups []string, a slog.Attr) slog.Attr {
 		if a.Key == slog.SourceKey {
@@ -66,4 +68,5 @@ func setLogging() {
 	if os.Getenv("DEBUG") == "true" {
 		logLevel.Set(slog.LevelDebug)
 	}
+	return logger
 }

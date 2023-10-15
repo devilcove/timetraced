@@ -22,6 +22,7 @@ func setupRouter() *gin.Engine {
 	store := cookie.NewStore([]byte(secret))
 	session := sessions.Sessions("time", store)
 	router := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "DELETE"},
@@ -31,7 +32,6 @@ func setupRouter() *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 	router.Use(session)
-	//router.POST("/newuser", New)
 	users := router.Group("/users", auth)
 	{
 		users.GET("", getUsers)

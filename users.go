@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/devilcove/timetraced/database"
@@ -35,7 +35,7 @@ func login(c *gin.Context) {
 	}
 	session.Set("loggedin", true)
 	session.Set("user", user.Username)
-	session.Set("admin", true)
+	session.Set("admin", user.IsAdmin)
 	session.Options(sessions.Options{MaxAge: SessionAge, Secure: true, SameSite: http.SameSiteLaxMode})
 	session.Save()
 	user.Password = ""
@@ -50,6 +50,7 @@ func validateUser(visitor *models.User) bool {
 		return false
 	}
 	if visitor.Username == user.Username && checkPassword(visitor, &user) {
+		visitor.IsAdmin = user.IsAdmin
 		return true
 	}
 	return false
@@ -68,7 +69,7 @@ func logout(c *gin.Context) {
 	//delete cookie
 	session.Clear()
 	session.Save()
-	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusNoContent, nil)
 }
 
 func addUser(c *gin.Context) {
@@ -103,8 +104,7 @@ func addUser(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	location := url.URL{Path: "/"}
-	c.Redirect(http.StatusFound, location.RequestURI())
+	c.JSON(http.StatusNoContent, nil)
 }
 
 func editUser(c *gin.Context) {
@@ -146,8 +146,13 @@ func deleteUser(c *gin.Context) {
 	session := sessions.Default(c)
 	admin := session.Get("admin")
 	user := c.Param("name")
+	fmt.Println("admin status is --------------------------", admin)
 	if !admin.(bool) {
-		processError(c, http.StatusUnauthorized, "you are not authorized to edit this user")
+		processError(c, http.StatusUnauthorized, "you are not authorized to delete this user")
+	}
+	if _, err := database.GetUser(user); err != nil {
+		processError(c, http.StatusBadRequest, "user does not exist")
+		return
 	}
 	if err := database.DeleteUser(user); err != nil {
 		processError(c, http.StatusInternalServerError, err.Error())
