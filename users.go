@@ -82,7 +82,7 @@ func addUser(c *gin.Context) {
 		processError(c, http.StatusBadRequest, "could not decode request into json")
 		return
 	}
-	if _, err := database.GetUser(user.Username); err != nil {
+	if _, err := database.GetUser(user.Username); err == nil {
 		processError(c, http.StatusBadRequest, "user exists")
 		return
 	}

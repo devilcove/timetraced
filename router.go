@@ -89,7 +89,7 @@ func checkDefaultUser() {
 	}
 	password, err := hashPassword(pass)
 	if err != nil {
-		log.Println("hash error", err)
+		slog.Error("hash error", "error", err)
 	}
 	database.SaveUser(&models.User{
 		Username: user,
@@ -97,5 +97,5 @@ func checkDefaultUser() {
 		IsAdmin:  true,
 		Updated:  time.Now(),
 	})
-	log.Println("default user created")
+	slog.Info("default user created")
 }

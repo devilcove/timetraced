@@ -15,6 +15,8 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	setLogging()
+	os.Setenv("DB_FILE", "test.db")
 	database.InitializeDatabase()
 	defer database.Close()
 	checkDefaultUser()
@@ -45,8 +47,8 @@ func TestAdminLogin(t *testing.T) {
 }
 func TestNonAdminLogin(t *testing.T) {
 	deleteAllUsers()
-	cookie := testLogin(models.User{Username: "admin", Password: "password"})
-	addTestUser(cookie, models.User{Username: "tester", Password: "testing", IsAdmin: false})
+	err := addTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
+	assert.Nil(t, err)
 	router := setupRouter()
 	w := httptest.NewRecorder()
 	data := models.User{
@@ -110,11 +112,12 @@ func TestGetAllUsers(t *testing.T) {
 
 func TestDeleteUser(t *testing.T) {
 	deleteAllUsers()
-	cookie := testLogin(models.User{Username: "admin", Password: "password"})
-	addTestUser(cookie, models.User{Username: "tester", Password: "testing", IsAdmin: false})
-	addTestUser(cookie, models.User{Username: "tester2", Password: "testing", IsAdmin: false})
+	err := addTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
+	assert.Nil(t, err)
+	err = addTestUser(models.User{Username: "tester2", Password: "testing", IsAdmin: false})
+	assert.Nil(t, err)
 	t.Run("non-admin delete", func(t *testing.T) {
-		cookie = testLogin(models.User{Username: "tester", Password: "testing"})
+		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
 		assert.NotNil(t, cookie)
 		router := setupRouter()
 		w := httptest.NewRecorder()
@@ -124,7 +127,7 @@ func TestDeleteUser(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 	t.Run("admin delete", func(t *testing.T) {
-		cookie = testLogin(models.User{Username: "admin", Password: "password"})
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
 		router := setupRouter()
 		w := httptest.NewRecorder()
@@ -134,7 +137,7 @@ func TestDeleteUser(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, w.Code)
 	})
 	t.Run("delete non-existent user", func(t *testing.T) {
-		cookie = testLogin(models.User{Username: "admin", Password: "password"})
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
 		router := setupRouter()
 		w := httptest.NewRecorder()
@@ -146,9 +149,10 @@ func TestDeleteUser(t *testing.T) {
 }
 func TestEditUser(t *testing.T) {
 	deleteAllUsers()
-	cookie := testLogin(models.User{Username: "admin", Password: "password"})
-	addTestUser(cookie, models.User{Username: "tester", Password: "testing", IsAdmin: false})
-	addTestUser(cookie, models.User{Username: "tester2", Password: "testing", IsAdmin: false})
+	err := addTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
+	assert.Nil(t, err)
+	err = addTestUser(models.User{Username: "tester2", Password: "testing", IsAdmin: false})
+	assert.Nil(t, err)
 	t.Run("edit other user by non-admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
 		assert.NotNil(t, cookie)
@@ -188,6 +192,7 @@ func TestEditUser(t *testing.T) {
 	})
 }
 func TestAddUser(t *testing.T) {
+	deleteAllUsers()
 	t.Run("add user by admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
@@ -197,11 +202,17 @@ func TestAddUser(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusNoContent, w.Code)
-		cookie = testLogin(models.User{Username: "new", Password: "newPassword"})
-		assert.NotNil(t, cookie)
+		if assert.Equal(t, http.StatusNoContent, w.Code) {
+			cookie = testLogin(models.User{Username: "new", Password: "newPassword"})
+			assert.NotNil(t, cookie)
+		} else {
+			body, _ := io.ReadAll(w.Result().Body)
+			t.Log(w.Code, string(body))
+		}
 	})
 	t.Run("add user by non-admin", func(t *testing.T) {
+		err := addTestUser(models.User{Username: "tester", Password: "newPassword"})
+		assert.Nil(t, err)
 		cookie := testLogin(models.User{Username: "tester", Password: "newPassword"})
 		assert.NotNil(t, cookie)
 		router := setupRouter()
@@ -228,13 +239,12 @@ func testLogin(data models.User) *http.Cookie {
 	return nil
 }
 
-func addTestUser(cookie *http.Cookie, user models.User) {
-	router := setupRouter()
-	w := httptest.NewRecorder()
-	body, _ := json.Marshal(user)
-	req, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
-	req.AddCookie(cookie)
-	router.ServeHTTP(w, req)
+func addTestUser(user models.User) error {
+	user.Password, _ = hashPassword(user.Password)
+	if err := database.SaveUser(&user); err != nil {
+		return err
+	}
+	return nil
 }
 
 func deleteAllUsers() {
