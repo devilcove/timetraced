@@ -52,6 +52,10 @@ func setupRouter() *gin.Engine {
 		projects.POST("/stop", stop)
 		projects.GET("/status", status)
 	}
+	reports := router.Group("/reports", auth)
+	{
+		reports.POST("", getReport)
+	}
 	return router
 }
 
@@ -63,9 +67,6 @@ func processError(c *gin.Context, status int, message string) {
 func auth(c *gin.Context) {
 	session := sessions.Default(c)
 	loggedIn := session.Get("loggedin")
-	message := session.Get("message")
-	user := session.Get("user")
-	log.Println("auth", loggedIn, user, message)
 	if loggedIn != true {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid credentials"})
 		c.Abort()
@@ -92,7 +93,7 @@ func checkDefaultUser() {
 	}
 	password, err := hashPassword(pass)
 	if err != nil {
-		log.Println("hash error", err)
+		slog.Error("hash error", "error", err)
 	}
 	database.SaveUser(&models.User{
 		Username: user,
@@ -100,5 +101,5 @@ func checkDefaultUser() {
 		IsAdmin:  true,
 		Updated:  time.Now(),
 	})
-	log.Println("default user created")
+	slog.Info("default user created")
 }

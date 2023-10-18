@@ -2,6 +2,7 @@ package database
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"go.etcd.io/bbolt"
@@ -31,7 +32,11 @@ var (
 
 func InitializeDatabase() error {
 	var err error
-	db, err = bbolt.Open("./time.db", 0666, &bbolt.Options{Timeout: 1 * time.Second})
+	file := os.Getenv("DB_FILE")
+	if file == "" {
+		file = "time.db"
+	}
+	db, err = bbolt.Open(file, 0666, &bbolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		return err
 	}

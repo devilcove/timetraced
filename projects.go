@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -38,6 +39,7 @@ func addProject(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, "error saving project "+err.Error())
 		return
 	}
+	slog.Info("added", "project", project.Name)
 	c.JSON(http.StatusOK, project)
 }
 func getProject(c *gin.Context) {
@@ -51,6 +53,8 @@ func getProject(c *gin.Context) {
 }
 
 func start(c *gin.Context) {
+	session := sessions.Default(c)
+	user := session.Get("user").(string)
 	p := c.Param("name")
 	project, err := database.GetProject(p)
 	if err != nil {
@@ -69,6 +73,7 @@ func start(c *gin.Context) {
 	record := models.Record{
 		ID:      uuid.New(),
 		Project: p,
+		User:    user,
 		Start:   time.Now(),
 	}
 	if err := database.SaveRecord(&record); err != nil {
@@ -76,6 +81,7 @@ func start(c *gin.Context) {
 		return
 	}
 	models.TrackingActive(project)
+	slog.Info("tracking started", "project", project.Name)
 	c.JSON(http.StatusOK, project)
 }
 
@@ -88,10 +94,11 @@ func stopE() error {
 		if record.End.IsZero() {
 			record.End = time.Now()
 			if err := database.SaveRecord(&record); err != nil {
-				log.Println("failed to save updated record", err)
+				slog.Error("failed to save updated record", "error", err)
 			}
 		}
 	}
+	slog.Info("tracking stopped", "project", models.Tracked())
 	models.TrackingInactive()
 	return nil
 }

@@ -63,11 +63,16 @@ func setLogging() *slog.Logger {
 	logLevel := &slog.LevelVar{}
 	replace := func(groups []string, a slog.Attr) slog.Attr {
 		if a.Key == slog.SourceKey {
-			a.Value = slog.StringValue(filepath.Base(a.Value.String()))
+			source, ok := a.Value.Any().(*slog.Source)
+			if ok {
+				source.File = filepath.Base(source.File)
+				source.Function = filepath.Base(source.Function)
+			}
 		}
 		return a
 	}
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{AddSource: true, ReplaceAttr: replace, Level: logLevel}))
+	//logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{AddSource: true, Level: logLevel}))
 	slog.SetDefault(logger)
 	if os.Getenv("DEBUG") == "true" {
 		logLevel.Set(slog.LevelDebug)
