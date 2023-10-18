@@ -2,7 +2,6 @@ package database
 
 import (
 	"encoding/json"
-	"fmt"
 	"slices"
 	"time"
 
@@ -97,12 +96,6 @@ func GetReportRecords(req models.ReportRequest) ([]models.Record, error) {
 			if err := json.Unmarshal(v, &record); err != nil {
 				return err
 			}
-			containsUser := slices.Contains(req.Users, record.User)
-			containsProject := slices.Contains(req.Projects, record.Project)
-			after := record.Start.After(start)
-			before := record.Start.Before(end)
-			fmt.Println(record.ID, containsUser, containsProject, after, before)
-
 			if slices.Contains(req.Users, record.User) &&
 				slices.Contains(req.Projects, record.Project) &&
 				record.Start.After(start) &&
