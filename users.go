@@ -119,7 +119,7 @@ func editUser(c *gin.Context) {
 	}
 	updatedUser, err := database.GetUser(user.Username)
 	if err != nil {
-		processError(c, http.StatusBadRequest, "user does not exists")
+		processError(c, http.StatusBadRequest, "user does not exist")
 		return
 	}
 	updatedUser.Password, err = hashPassword(user.Password)

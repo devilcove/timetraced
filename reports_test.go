@@ -83,7 +83,7 @@ func TestGetReport(t *testing.T) {
 		router := setupRouter()
 		w := httptest.NewRecorder()
 		data := models.ReportRequest{
-			Start:    time.Now().Add(-36 * time.Hour),
+			Start:    time.Now().Add(-72 * time.Hour),
 			End:      time.Now(),
 			Projects: []string{"timetrace", "golf"},
 			Users:    []string{"test", "test2"},
