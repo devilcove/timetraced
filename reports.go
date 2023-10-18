@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"sort"
 
@@ -16,7 +15,6 @@ func getReport(c *gin.Context) {
 		processError(c, http.StatusBadRequest, "could not decode request")
 		return
 	}
-	fmt.Println(reportRequest)
 	reportData, err := database.GetReportRecords(reportRequest)
 	if err != nil {
 		processError(c, http.StatusInternalServerError, err.Error())
