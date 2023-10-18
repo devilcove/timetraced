@@ -2,6 +2,8 @@ package database
 
 import (
 	"encoding/json"
+	"fmt"
+	"slices"
 	"time"
 
 	"github.com/devilcove/timetraced/models"
@@ -73,6 +75,38 @@ func GetTodaysRecords() ([]models.Record, error) {
 				return err
 			}
 			if record.Start.After(today) {
+				records = append(records, record)
+			}
+			return nil
+		})
+		return nil
+	}); err != nil {
+		return records, err
+	}
+	return records, nil
+}
+
+func GetReportRecords(req models.ReportRequest) ([]models.Record, error) {
+	records := []models.Record{}
+	record := models.Record{}
+	start := truncateToStart(req.Start)
+	end := truncateToEnd(req.End)
+	if err := db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(RECORDS_TABLE_NAME))
+		b.ForEach(func(k, v []byte) error {
+			if err := json.Unmarshal(v, &record); err != nil {
+				return err
+			}
+			containsUser := slices.Contains(req.Users, record.User)
+			containsProject := slices.Contains(req.Projects, record.Project)
+			after := record.Start.After(start)
+			before := record.Start.Before(end)
+			fmt.Println(record.ID, containsUser, containsProject, after, before)
+
+			if slices.Contains(req.Users, record.User) &&
+				slices.Contains(req.Projects, record.Project) &&
+				record.Start.After(start) &&
+				record.Start.Before(end) {
 				records = append(records, record)
 			}
 			return nil

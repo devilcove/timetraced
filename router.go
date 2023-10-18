@@ -52,6 +52,10 @@ func setupRouter() *gin.Engine {
 		projects.POST("/stop", stop)
 		projects.GET("/status", status)
 	}
+	reports := router.Group("/reports", auth)
+	{
+		reports.POST("", getReport)
+	}
 	return router
 }
 

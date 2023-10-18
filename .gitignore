@@ -1,3 +1,6 @@
 .env
 time.db
+test.db
 timetraced
+timetrace
+coverage.out
