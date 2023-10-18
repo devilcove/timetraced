@@ -63,8 +63,8 @@ func setLogging() *slog.Logger {
 	logLevel := &slog.LevelVar{}
 	replace := func(groups []string, a slog.Attr) slog.Attr {
 		if a.Key == slog.SourceKey {
-			source, _ := a.Value.Any().(*slog.Source)
-			if source != nil {
+			source, ok := a.Value.Any().(*slog.Source)
+			if ok {
 				source.File = filepath.Base(source.File)
 				source.Function = filepath.Base(source.Function)
 			}
