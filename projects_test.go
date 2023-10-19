@@ -104,7 +104,8 @@ func TestAddProject(t *testing.T) {
 
 func TestGetProjects(t *testing.T) {
 	deleteAllProjects()
-	createTestProject()
+	createTestProjects()
+
 	t.Run("existing project", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
@@ -120,8 +121,8 @@ func TestGetProjects(t *testing.T) {
 		err = json.Unmarshal(body, &msg)
 		assert.Nil(t, err)
 		assert.Equal(t, "test", msg.Name)
-
 	})
+
 	t.Run("wrong project", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
@@ -137,7 +138,156 @@ func TestGetProjects(t *testing.T) {
 		err = json.Unmarshal(body, &msg)
 		assert.Nil(t, err)
 		assert.Equal(t, "could not retrieve project unexpected end of JSON input", msg.Message)
+	})
 
+	t.Run("get all", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/projects", nil)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		body, err := io.ReadAll(w.Result().Body)
+		assert.Nil(t, err)
+		msg := []models.Project{}
+		err = json.Unmarshal(body, &msg)
+		assert.Nil(t, err)
+		assert.Equal(t, "test", msg[0].Name)
+	})
+	t.Run("get all when empty", func(t *testing.T) {
+		deleteAllProjects()
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/projects", nil)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		body, err := io.ReadAll(w.Result().Body)
+		assert.Nil(t, err)
+		msg := []models.StatusResponse{}
+		err = json.Unmarshal(body, &msg)
+		assert.Nil(t, err)
+		assert.Equal(t, 0, len(msg))
+	})
+}
+
+func TestGetStatus(t *testing.T) {
+	createTestRecords()
+	cookie := testLogin(models.User{Username: "admin", Password: "password"})
+	assert.NotNil(t, cookie)
+	router := setupRouter()
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/projects/status", nil)
+	req.AddCookie(cookie)
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+	body, err := io.ReadAll(w.Result().Body)
+	assert.Nil(t, err)
+	msg := models.StatusResponse{}
+	err = json.Unmarshal(body, &msg)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(msg.Durations))
+}
+
+func TestStartStopProject(t *testing.T) {
+	deleteAllProjects()
+	createTestProjects()
+	t.Run("non-existent Project", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/projects/junk/start", nil)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		body, err := io.ReadAll(w.Result().Body)
+		assert.Nil(t, err)
+		msg := models.ErrorMessage{}
+		err = json.Unmarshal(body, &msg)
+		assert.Nil(t, err)
+		assert.Equal(t, "error reading project unexpected end of JSON input", msg.Message)
+
+	})
+	t.Run("inactive project", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/projects/inactive/start", nil)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		body, err := io.ReadAll(w.Result().Body)
+		assert.Nil(t, err)
+		msg := models.ErrorMessage{}
+		err = json.Unmarshal(body, &msg)
+		assert.Nil(t, err)
+		assert.Equal(t, "project is not active", msg.Message)
+	})
+	t.Run("start", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/projects/test/start", nil)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		body, err := io.ReadAll(w.Result().Body)
+		assert.Nil(t, err)
+		msg := models.Project{}
+		err = json.Unmarshal(body, &msg)
+		assert.Nil(t, err)
+		assert.Equal(t, "test", msg.Name)
+	})
+	t.Run("start project already being tracked", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/projects/test2/start", nil)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		body, err := io.ReadAll(w.Result().Body)
+		assert.Nil(t, err)
+		msg := models.Project{}
+		err = json.Unmarshal(body, &msg)
+		assert.Nil(t, err)
+		assert.Equal(t, "test2", msg.Name)
+	})
+	t.Run("stop tracked projects", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/projects/stop", nil)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		body, err := io.ReadAll(w.Result().Body)
+		assert.Nil(t, err)
+		assert.Equal(t, "null", string(body))
+		t.Log(string(body))
+	})
+	t.Run("stop untracked project", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/projects/stop", nil)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		body, err := io.ReadAll(w.Result().Body)
+		assert.Nil(t, err)
+		assert.Equal(t, "null", string(body))
+		t.Log(string(body))
 	})
 
 }
@@ -149,11 +299,23 @@ func deleteAllProjects() {
 	}
 }
 
-func createTestProject() {
+func createTestProjects() {
 	database.SaveProject(&models.Project{
 		ID:      uuid.New(),
 		Name:    "test",
 		Active:  true,
+		Updated: time.Now(),
+	})
+	database.SaveProject(&models.Project{
+		ID:      uuid.New(),
+		Name:    "test2",
+		Active:  true,
+		Updated: time.Now(),
+	})
+	database.SaveProject(&models.Project{
+		ID:      uuid.New(),
+		Name:    "inactive",
+		Active:  false,
 		Updated: time.Now(),
 	})
 }
