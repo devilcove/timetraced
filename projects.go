@@ -29,7 +29,6 @@ func addProject(c *gin.Context) {
 		processError(c, http.StatusBadRequest, "could not decode request into json "+err.Error())
 		return
 	}
-	fmt.Println(project.Name, regexp.MustCompile(`^[a-zA-Z0-9]*$`).MatchString(project.Name))
 	if regexp.MustCompile(`\s+`).MatchString(project.Name) {
 		processError(c, http.StatusBadRequest, "invalid project name")
 		return
@@ -52,7 +51,7 @@ func getProject(c *gin.Context) {
 	p := c.Param("name")
 	project, err := database.GetProject(p)
 	if err != nil {
-		processError(c, http.StatusBadGateway, "could not retrieve project "+err.Error())
+		processError(c, http.StatusBadRequest, "could not retrieve project "+err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, project)

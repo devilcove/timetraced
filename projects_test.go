@@ -110,7 +110,7 @@ func TestGetProjects(t *testing.T) {
 		assert.NotNil(t, cookie)
 		router := setupRouter()
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodPost, "/projects/test project", nil)
+		req, _ := http.NewRequest(http.MethodGet, "/projects/test", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -119,7 +119,7 @@ func TestGetProjects(t *testing.T) {
 		msg := models.Project{}
 		err = json.Unmarshal(body, &msg)
 		assert.Nil(t, err)
-		assert.Equal(t, "test project", msg.Name)
+		assert.Equal(t, "test", msg.Name)
 
 	})
 	t.Run("wrong project", func(t *testing.T) {
@@ -127,7 +127,7 @@ func TestGetProjects(t *testing.T) {
 		assert.NotNil(t, cookie)
 		router := setupRouter()
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodPost, "/projects/missing project", nil)
+		req, _ := http.NewRequest(http.MethodGet, "/projects/missing", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -136,7 +136,7 @@ func TestGetProjects(t *testing.T) {
 		msg := models.ErrorMessage{}
 		err = json.Unmarshal(body, &msg)
 		assert.Nil(t, err)
-		assert.Equal(t, "project exists", msg.Message)
+		assert.Equal(t, "could not retrieve project unexpected end of JSON input", msg.Message)
 
 	})
 
@@ -152,7 +152,7 @@ func deleteAllProjects() {
 func createTestProject() {
 	database.SaveProject(&models.Project{
 		ID:      uuid.New(),
-		Name:    "test project",
+		Name:    "test",
 		Active:  true,
 		Updated: time.Now(),
 	})
