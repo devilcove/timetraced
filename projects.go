@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/devilcove/timetraced/database"
@@ -28,8 +29,13 @@ func addProject(c *gin.Context) {
 		processError(c, http.StatusBadRequest, "could not decode request into json "+err.Error())
 		return
 	}
+	fmt.Println(project.Name, regexp.MustCompile(`^[a-zA-Z0-9]*$`).MatchString(project.Name))
+	if regexp.MustCompile(`\s+`).MatchString(project.Name) {
+		processError(c, http.StatusBadRequest, "invalid project name")
+		return
+	}
 	if _, err := database.GetProject(project.Name); err == nil {
-		processError(c, http.StatusBadRequest, "project exists ")
+		processError(c, http.StatusBadRequest, "project exists")
 		return
 	}
 	project.ID = uuid.New()
