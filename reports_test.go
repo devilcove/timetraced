@@ -76,14 +76,14 @@ func TestGetReport(t *testing.T) {
 		err = json.Unmarshal(body, &msg)
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, 1, len(msg))
+		assert.Equal(t, 2, len(msg))
 	})
 
 	t.Run("all records", func(t *testing.T) {
 		router := setupRouter()
 		w := httptest.NewRecorder()
 		data := models.ReportRequest{
-			Start:    time.Now().Add(-36 * time.Hour),
+			Start:    time.Now().Add(-72 * time.Hour),
 			End:      time.Now(),
 			Projects: []string{"timetrace", "golf"},
 			Users:    []string{"test", "test2"},
@@ -98,12 +98,20 @@ func TestGetReport(t *testing.T) {
 		err = json.Unmarshal(body, &msg)
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, 6, len(msg))
+		assert.Equal(t, 7, len(msg))
 	})
 
 }
 
 func createTestRecords() {
+	database.SaveRecord(&models.Record{
+		ID:      uuid.New(),
+		Project: "timetrace",
+		User:    "test",
+		Start:   time.Now().Add(time.Minute * -10),
+		End:     time.Now().Add(time.Minute * -5),
+	})
+
 	database.SaveRecord(&models.Record{
 		ID:      uuid.New(),
 		Project: "timetrace",

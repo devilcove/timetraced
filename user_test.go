@@ -69,20 +69,45 @@ func TestNonAdminLogin(t *testing.T) {
 }
 
 func TestBadLogin(t *testing.T) {
-	router := setupRouter()
-	w := httptest.NewRecorder()
-	data := struct {
-		Username string
-		Password string
-	}{
-		Username: "admin",
-		Password: "helloworld",
-	}
-	body, _ := json.Marshal(data)
-	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
-	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
+	t.Run("bad pass", func(t *testing.T) {
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		data := struct {
+			Username string
+			Password string
+		}{
+			Username: "admin",
+			Password: "helloworld",
+		}
+		body, _ := json.Marshal(data)
+		req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
+	})
+	t.Run("invalid data", func(t *testing.T) {
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, "/login", nil)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
+	})
+	t.Run("invalid user", func(t *testing.T) {
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		data := models.User{Username: "nosuchuser", Password: "testing"}
+		payload, _ := json.Marshal(data)
+		req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(payload))
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
+		body, _ := io.ReadAll(w.Result().Body)
+		msg := models.ErrorMessage{}
+		json.Unmarshal(body, &msg)
+		assert.Equal(t, "invalid user", msg.Message)
+
+	})
 }
 
 func TestLogout(t *testing.T) {
@@ -190,6 +215,36 @@ func TestEditUser(t *testing.T) {
 		cookie = testLogin(models.User{Username: "tester", Password: "newPassword"})
 		assert.NotNil(t, cookie)
 	})
+	t.Run("incomplete data", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPut, "/users", nil)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		body, _ := io.ReadAll(w.Result().Body)
+		message := models.ErrorMessage{}
+		json.Unmarshal(body, &message)
+		assert.Equal(t, "could not decode request into json", message.Message)
+	})
+	t.Run("user does not exist", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		payload, _ := json.Marshal(models.User{Username: "nosuchuser", Password: "newPassword"})
+		req, _ := http.NewRequest(http.MethodPut, "/users", bytes.NewBuffer(payload))
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		body, _ := io.ReadAll(w.Result().Body)
+		message := models.ErrorMessage{}
+		json.Unmarshal(body, &message)
+		assert.Equal(t, "user does not exist", message.Message)
+	})
+
 }
 func TestAddUser(t *testing.T) {
 	deleteAllUsers()
@@ -223,6 +278,39 @@ func TestAddUser(t *testing.T) {
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 	})
+
+	t.Run("empty password", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		body, _ := json.Marshal(models.User{Username: "emptypass", Password: ""})
+		req, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		body, _ = io.ReadAll(w.Result().Body)
+		message := models.ErrorMessage{}
+		json.Unmarshal(body, &message)
+		assert.Equal(t, "username or password cannot be blank", message.Message)
+	})
+
+	t.Run("incomplete data", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		router := setupRouter()
+		w := httptest.NewRecorder()
+		//body, _ := json.Marshal(struct{ InvaildData string }{InvaildData: "emptypass"})
+		req, _ := http.NewRequest(http.MethodPost, "/users", nil)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		body, _ := io.ReadAll(w.Result().Body)
+		message := models.ErrorMessage{}
+		json.Unmarshal(body, &message)
+		assert.Equal(t, "could not decode request into json", message.Message)
+	})
+
 }
 
 func testLogin(data models.User) *http.Cookie {
