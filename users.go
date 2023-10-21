@@ -174,6 +174,17 @@ func getUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, returnedUser)
 }
 
+func getUser(c *gin.Context) {
+	session := sessions.Default(c)
+	user, err := database.GetUser(session.Get("user").(string))
+	if err != nil {
+		processError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, user)
+
+}
+
 func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 4)
 	return string(bytes), err
