@@ -37,6 +37,7 @@ func setupRouter() *gin.Engine {
 	users := router.Group("/users", auth)
 	{
 		users.GET("", getUsers)
+		users.GET("current", getUser)
 		users.POST("", addUser)
 		users.PUT("", editUser)
 		users.DELETE(":name", deleteUser)
