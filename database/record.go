@@ -100,6 +100,9 @@ func GetReportRecords(req models.ReportRequest) ([]models.Record, error) {
 				slices.Contains(req.Projects, record.Project) &&
 				record.Start.After(start) &&
 				record.Start.Before(end) {
+				if record.End.IsZero() {
+					record.End = time.Now()
+				}
 				records = append(records, record)
 			}
 			return nil
