@@ -83,8 +83,8 @@ github.com/rogpeppe/go-internal v1.6.1/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTE
 github.com/rogpeppe/go-internal v1.8.0/go.mod h1:WmiCO8CzOY8rg0OYDC4/i/2WRWAB6poM+XZ2dLUbcbE=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
-github.com/samber/slog-gin v1.4.0 h1:aSWWEpI63DhE03n2GClgKsxQl1wr8VKikgLCHiFKXkU=
-github.com/samber/slog-gin v1.4.0/go.mod h1:E09LgkvhRB3Ae3VcekH6WlhPsT1i5O1/wWHcFAh3BhQ=
+github.com/samber/slog-gin v1.5.0 h1:riEZB1ozVuL6wFFHhcZdQmkujuo3EtX1qu3Q+2EPgFo=
+github.com/samber/slog-gin v1.5.0/go.mod h1:E09LgkvhRB3Ae3VcekH6WlhPsT1i5O1/wWHcFAh3BhQ=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
