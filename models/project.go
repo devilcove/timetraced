@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	trackingActive bool
-	trackedProject string
+	trackingActive map[string]bool
+	trackedProject map[string]string
 )
 
 type Project struct {
@@ -22,20 +22,20 @@ type StartRequest struct {
 	Project string
 }
 
-func IsTrackingActive() bool {
-	return trackingActive
+func IsTrackingActive(u string) bool {
+	return trackingActive[u]
 }
 
-func TrackingActive(p Project) {
-	trackingActive = true
-	trackedProject = p.Name
+func TrackingActive(u string, p Project) {
+	trackingActive[u] = true
+	trackedProject[u] = p.Name
 }
 
-func TrackingInactive() {
-	trackingActive = false
-	trackedProject = ""
+func TrackingInactive(u string) {
+	trackingActive[u] = false
+	trackedProject[u] = ""
 }
 
-func Tracked() string {
-	return trackedProject
+func Tracked(u string) string {
+	return trackedProject[u]
 }

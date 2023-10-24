@@ -54,6 +54,27 @@ func GetAllRecords() ([]models.Record, error) {
 	return records, nil
 }
 
+func GetAllRecordsForUser(u string) ([]models.Record, error) {
+	var records []models.Record
+	var record models.Record
+	if err := db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(RECORDS_TABLE_NAME))
+		b.ForEach(func(k, v []byte) error {
+			if err := json.Unmarshal(v, &record); err != nil {
+				return err
+			}
+			if record.User == u {
+				records = append(records, record)
+			}
+			return nil
+		})
+		return nil
+	}); err != nil {
+		return records, err
+	}
+	return records, nil
+}
+
 func DeleteRecord(id uuid.UUID) error {
 	if err := db.Update(func(tx *bbolt.Tx) error {
 		return tx.Bucket([]byte(RECORDS_TABLE_NAME)).Delete([]byte(id.String()))
@@ -74,6 +95,28 @@ func GetTodaysRecords() ([]models.Record, error) {
 				return err
 			}
 			if record.Start.After(today) {
+				records = append(records, record)
+			}
+			return nil
+		})
+		return nil
+	}); err != nil {
+		return records, err
+	}
+	return records, nil
+}
+
+func GetTodaysRecordsForUser(user string) ([]models.Record, error) {
+	records := []models.Record{}
+	record := models.Record{}
+	today := truncateToStart(time.Now())
+	if err := db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(RECORDS_TABLE_NAME))
+		b.ForEach(func(k, v []byte) error {
+			if err := json.Unmarshal(v, &record); err != nil {
+				return err
+			}
+			if record.User == user && record.Start.After(today) {
 				records = append(records, record)
 			}
 			return nil

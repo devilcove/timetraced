@@ -46,11 +46,17 @@ func main() {
 	database.InitializeDatabase()
 	defer database.Close()
 	checkDefaultUser()
-	project := database.GetActiveProject()
-	if project != nil {
-		models.TrackingActive(*project)
-	} else {
-		models.TrackingInactive()
+	users, err := database.GetAllUsers()
+	if err != nil {
+		slog.Error("get users", "error", err)
+	}
+	for _, user := range users {
+		project := database.GetActiveProject(user.Username)
+		if project != nil {
+			models.TrackingActive(user.Username, *project)
+		} else {
+			models.TrackingInactive(user.Username)
+		}
 	}
 	router := setupRouter()
 	router.Use(sloggin.New(logger))
