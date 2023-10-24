@@ -18,7 +18,7 @@ import (
 func TestGetReport(t *testing.T) {
 	deleteAllUsers()
 	deleteAllRecords()
-	addTestUser(models.User{Username: "test", Password: "testing"})
+	createTestUser(models.User{Username: "test", Password: "testing"})
 	cookie := testLogin(models.User{Username: "test", Password: "testing"})
 	assert.NotNil(t, cookie)
 	t.Run("no request", func(t *testing.T) {

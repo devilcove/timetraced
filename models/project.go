@@ -22,8 +22,16 @@ type StartRequest struct {
 	Project string
 }
 
+func init() {
+	trackingActive = make(map[string]bool)
+	trackedProject = make(map[string]string)
+}
+
 func IsTrackingActive(u string) bool {
-	return trackingActive[u]
+	if active, ok := trackingActive[u]; ok {
+		return active
+	}
+	return false
 }
 
 func TrackingActive(u string, p Project) {
@@ -37,5 +45,8 @@ func TrackingInactive(u string) {
 }
 
 func Tracked(u string) string {
-	return trackedProject[u]
+	if project, ok := trackedProject[u]; ok {
+		return project
+	}
+	return ""
 }

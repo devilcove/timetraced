@@ -47,7 +47,7 @@ func TestAdminLogin(t *testing.T) {
 }
 func TestNonAdminLogin(t *testing.T) {
 	deleteAllUsers()
-	err := addTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
+	err := createTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
 	assert.Nil(t, err)
 	router := setupRouter()
 	w := httptest.NewRecorder()
@@ -137,9 +137,9 @@ func TestGetAllUsers(t *testing.T) {
 
 func TestDeleteUser(t *testing.T) {
 	deleteAllUsers()
-	err := addTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
+	err := createTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
 	assert.Nil(t, err)
-	err = addTestUser(models.User{Username: "tester2", Password: "testing", IsAdmin: false})
+	err = createTestUser(models.User{Username: "tester2", Password: "testing", IsAdmin: false})
 	assert.Nil(t, err)
 	t.Run("non-admin delete", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
@@ -174,9 +174,9 @@ func TestDeleteUser(t *testing.T) {
 }
 func TestEditUser(t *testing.T) {
 	deleteAllUsers()
-	err := addTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
+	err := createTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
 	assert.Nil(t, err)
-	err = addTestUser(models.User{Username: "tester2", Password: "testing", IsAdmin: false})
+	err = createTestUser(models.User{Username: "tester2", Password: "testing", IsAdmin: false})
 	assert.Nil(t, err)
 	t.Run("edit other user by non-admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
@@ -266,7 +266,7 @@ func TestAddUser(t *testing.T) {
 		}
 	})
 	t.Run("add user by non-admin", func(t *testing.T) {
-		err := addTestUser(models.User{Username: "tester", Password: "newPassword"})
+		err := createTestUser(models.User{Username: "tester", Password: "newPassword"})
 		assert.Nil(t, err)
 		cookie := testLogin(models.User{Username: "tester", Password: "newPassword"})
 		assert.NotNil(t, cookie)
@@ -327,7 +327,7 @@ func testLogin(data models.User) *http.Cookie {
 	return nil
 }
 
-func addTestUser(user models.User) error {
+func createTestUser(user models.User) error {
 	user.Password, _ = hashPassword(user.Password)
 	if err := database.SaveUser(&user); err != nil {
 		return err
