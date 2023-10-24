@@ -7,15 +7,15 @@ import (
 	"github.com/devilcove/timetraced/models"
 )
 
-func getStatus() (models.StatusResponse, error) {
+func getStatus(user string) (models.StatusResponse, error) {
 	durations := make(map[string]time.Duration)
 	status := models.Status{}
 	response := models.StatusResponse{}
-	records, err := database.GetTodaysRecords()
+	records, err := database.GetTodaysRecordsForUser(user)
 	if err != nil {
 		return response, err
 	}
-	status.Current = models.Tracked()
+	status.Current = models.Tracked(user)
 	for _, record := range records {
 		if record.End.IsZero() {
 			record.End = time.Now()

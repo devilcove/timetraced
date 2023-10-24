@@ -60,12 +60,15 @@ func DeleteProject(name string) error {
 	return nil
 }
 
-func GetActiveProject() *models.Project {
+func GetActiveProject(u string) *models.Project {
 	records, err := GetTodaysRecords()
 	if err != nil {
 		return nil
 	}
 	for _, record := range records {
+		if record.User != u {
+			continue
+		}
 		if record.End.IsZero() {
 			project, err := GetProject(record.Project)
 			if err != nil {

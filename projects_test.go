@@ -105,9 +105,10 @@ func TestAddProject(t *testing.T) {
 func TestGetProjects(t *testing.T) {
 	deleteAllProjects()
 	createTestProjects()
+	createTestUser(models.User{Username: "test", Password: "test", IsAdmin: false})
 
 	t.Run("existing project", func(t *testing.T) {
-		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		cookie := testLogin(models.User{Username: "test", Password: "test"})
 		assert.NotNil(t, cookie)
 		router := setupRouter()
 		w := httptest.NewRecorder()
@@ -154,7 +155,7 @@ func TestGetProjects(t *testing.T) {
 		msg := []models.Project{}
 		err = json.Unmarshal(body, &msg)
 		assert.Nil(t, err)
-		assert.Equal(t, "test", msg[0].Name)
+		assert.Equal(t, 3, len(msg))
 	})
 	t.Run("get all when empty", func(t *testing.T) {
 		deleteAllProjects()
@@ -177,7 +178,8 @@ func TestGetProjects(t *testing.T) {
 
 func TestGetStatus(t *testing.T) {
 	createTestRecords()
-	cookie := testLogin(models.User{Username: "admin", Password: "password"})
+	createTestUser(models.User{Username: "test", Password: "test", IsAdmin: false})
+	cookie := testLogin(models.User{Username: "test", Password: "test"})
 	assert.NotNil(t, cookie)
 	router := setupRouter()
 	w := httptest.NewRecorder()

@@ -70,8 +70,8 @@ func start(c *gin.Context) {
 		processError(c, http.StatusBadRequest, "project is not active")
 		return
 	}
-	if models.IsTrackingActive() {
-		if err := stopE(); err != nil {
+	if models.IsTrackingActive(user) {
+		if err := stopE(user); err != nil {
 			processError(c, http.StatusInternalServerError, err.Error())
 		}
 	}
@@ -85,13 +85,13 @@ func start(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, "failed to save record "+err.Error())
 		return
 	}
-	models.TrackingActive(project)
+	models.TrackingActive(user, project)
 	slog.Info("tracking started", "project", project.Name)
 	c.JSON(http.StatusOK, project)
 }
 
-func stopE() error {
-	records, err := database.GetAllRecords()
+func stopE(u string) error {
+	records, err := database.GetAllRecordsForUser(u)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve records %w", err)
 	}
@@ -103,13 +103,15 @@ func stopE() error {
 			}
 		}
 	}
-	slog.Info("tracking stopped", "project", models.Tracked())
-	models.TrackingInactive()
+	slog.Info("tracking stopped", "project", models.Tracked(u))
+	models.TrackingInactive(u)
 	return nil
 }
 
 func stop(c *gin.Context) {
-	if err := stopE(); err != nil {
+	session := sessions.Default(c)
+	user := session.Get("user").(string)
+	if err := stopE(user); err != nil {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -117,7 +119,9 @@ func stop(c *gin.Context) {
 }
 
 func status(c *gin.Context) {
-	status, err := getStatus()
+	session := sessions.Default(c)
+	user := session.Get("user").(string)
+	status, err := getStatus(user)
 	if err != nil {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
