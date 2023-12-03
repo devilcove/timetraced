@@ -1,0 +1,14 @@
+{{define "login"}}
+        <div class="w3-container w3-card-4 w3-padding-64" id="content">
+            <form action="/login" method="post">
+                <label for="username">Username</label><br>
+                <input type="text" placeholder="enter username" name="username" required><br>
+                <label for="pass">Password</label><br>
+                <input type="password" placeholder="enter password" name="password" required><br>
+                <button type="submit">Login</button>
+            </form>
+        <div class="w3-container">
+            <a href="/register">Don't have an Account?  Register</a>
+        </div>
+        </div>
+{{end}}

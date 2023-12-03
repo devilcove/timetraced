@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -14,10 +15,15 @@ import (
 
 const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 
+func displayStatus(c *gin.Context) {
+	page := models.GetPage()
+	c.HTML(http.StatusOK, "layout", page)
+}
+
 func login(c *gin.Context) {
 	session := sessions.Default(c)
 	var user models.User
-	if err := c.BindJSON(&user); err != nil {
+	if err := c.Bind(&user); err != nil {
 		processError(c, http.StatusBadRequest, "invalid user")
 		slog.Error("bind err", "error", err)
 		return
@@ -37,7 +43,7 @@ func login(c *gin.Context) {
 	session.Save()
 	user.Password = ""
 	slog.Info("login", "user", user.Username)
-	c.JSON(http.StatusOK, user)
+	c.HTML(http.StatusOK, "layout", models.GetPage())
 }
 
 func validateUser(visitor *models.User) bool {
@@ -46,6 +52,7 @@ func validateUser(visitor *models.User) bool {
 		slog.Error("no such user", "user", visitor.Username, "error", err)
 		return false
 	}
+	fmt.Println(visitor.Username, user.Username)
 	if visitor.Username == user.Username && checkPassword(visitor, &user) {
 		visitor.IsAdmin = user.IsAdmin
 		return true

@@ -5,8 +5,8 @@ import (
 )
 
 type User struct {
-	Username string
-	Password string
+	Username string `json:"username" form:"username"`
+	Password string `json:"password" form:"password"`
 	IsAdmin  bool
 	Updated  time.Time
 }

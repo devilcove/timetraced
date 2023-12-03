@@ -1,0 +1,31 @@
+{{define "content"}}
+<div class="w3-container w3-center" id="content">
+    <label>Current Project</label>
+    <label>{{.CurrentProject}}</label><br>
+    <ul>
+        <li><label>Time This Session </label>
+            <label>{{.CurrentSession}}</label><br>
+        </li>
+        <li><label>Time Today </label>
+            <label>{{.CurrentProjectTime}}</label><br>
+        </li>
+    </ul>
+    {{ if .Tracking }}
+    <form action="/stop" method="post">
+        <button class="w3-button" type="submit"><i class="fa fa-stopwatch"></i> Stop</button>
+    </form>
+    {{end}}
+
+    <h2> Time worked today </h2>
+    {{range $key, $value := .Summary}}
+    <strong><label>{{ $key }}</label></strong> {{ $value }}<br>
+    {{end}}
+    <br>
+    <strong><label>Total Time Today</label></strong>
+    <label>{{.Today}}</label><br>
+    <br>
+    <br>
+    <br>
+</div>
+{{template "about" . }}
+{{end}}

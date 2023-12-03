@@ -31,11 +31,10 @@ import (
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
 	"github.com/joho/godotenv"
-	sloggin "github.com/samber/slog-gin"
 )
 
 func main() {
-	logger := setLogging()
+	setLogging()
 	if err := godotenv.Load(); err != nil {
 		slog.Error("read environment", "error", err)
 	}
@@ -43,7 +42,9 @@ func main() {
 	if !ok {
 		port = "8080"
 	}
-	database.InitializeDatabase()
+	if err := database.InitializeDatabase(); err != nil {
+		log.Fatal(err)
+	}
 	defer database.Close()
 	checkDefaultUser()
 	users, err := database.GetAllUsers()
@@ -59,7 +60,7 @@ func main() {
 		}
 	}
 	router := setupRouter()
-	router.Use(sloggin.New(logger))
+	//router.Use(sloggin.New(logger))
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
@@ -77,7 +78,7 @@ func setLogging() *slog.Logger {
 		}
 		return a
 	}
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{AddSource: true, ReplaceAttr: replace, Level: logLevel}))
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{AddSource: true, ReplaceAttr: replace, Level: logLevel}))
 	//logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{AddSource: true, Level: logLevel}))
 	slog.SetDefault(logger)
 	if os.Getenv("DEBUG") == "true" {

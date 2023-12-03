@@ -26,3 +26,7 @@ func getReport(c *gin.Context) {
 	c.JSON(http.StatusOK, reportData)
 
 }
+
+func report(c *gin.Context) {
+	c.HTML(http.StatusOK, "report", "")
+}

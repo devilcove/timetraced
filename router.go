@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"log"
 	"log/slog"
 	"net/http"
@@ -15,15 +16,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//go:embed: images/favicon.ico
+var icon embed.FS
+
 func setupRouter() *gin.Engine {
-	gin.SetMode(gin.ReleaseMode)
+	//gin.SetMode(gin.ReleaseMode)
 	secret, ok := os.LookupEnv("SESSION_SECRET")
 	if !ok {
 		secret = "secret"
 	}
 	store := cookie.NewStore([]byte(secret))
 	session := sessions.Sessions("time", store)
-	router := gin.New()
+	router := gin.Default()
+	router.LoadHTMLGlob("html/*.html")
+	router.Static("images", "./images")
+	router.Static("assets", "./assets")
+	router.StaticFS("/favicon.ico", http.FS(icon))
+	//router.SetHTMLTemplate(template.Must(template.New("").Parse("html/*")))
 	router.SetTrustedProxies(nil)
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
@@ -44,6 +53,13 @@ func setupRouter() *gin.Engine {
 	}
 	router.POST("/login", login)
 	router.GET("/logout", logout)
+	router.GET("/reports", report)
+	router.GET("/configuration", config)
+	router.POST("/setConfig", setConfig)
+	status := router.Group("/", auth)
+	{
+		status.GET("/", displayStatus)
+	}
 	projects := router.Group("/projects", auth)
 	{
 		projects.GET("", getProjects)
@@ -51,7 +67,7 @@ func setupRouter() *gin.Engine {
 		projects.GET("/:name", getProject)
 		projects.POST("/:name/start", start)
 		projects.POST("/stop", stop)
-		projects.GET("/status", status)
+		projects.GET("/status", displayStatus)
 	}
 	reports := router.Group("/reports", auth)
 	{
@@ -69,7 +85,8 @@ func auth(c *gin.Context) {
 	session := sessions.Default(c)
 	loggedIn := session.Get("loggedin")
 	if loggedIn != true {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid credentials"})
+		page := models.GetPage()
+		c.HTML(http.StatusFound, "login", page)
 		c.Abort()
 		return
 	}
