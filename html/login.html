@@ -1,5 +1,9 @@
 {{define "login"}}
-        <div class="w3-container w3-card-4 w3-padding-64" id="content">
+<!-- [html-validate-disable no-inline-style]-->
+<div id="login" class="w3-modal">
+    <div class="w3-modal-content w3-card-4 w3-padding" style="width:50%">
+        <div class="w3-container w3-center w3-theme-dark">
+            <h1>Timetrace Login</h1>
             <form action="/login" method="post">
                 <label for="username">Username</label><br>
                 <input type="text" placeholder="enter username" name="username" required><br>
@@ -7,8 +11,10 @@
                 <input type="password" placeholder="enter password" name="password" required><br>
                 <button type="submit">Login</button>
             </form>
-        <div class="w3-container">
-            <a href="/register">Don't have an Account?  Register</a>
+            <div class="w3-container w3-padding-32">
+                <a href="/register">Don't have an Account? Register</a>
+            </div>
         </div>
-        </div>
+    </div>
+</div>
 {{end}}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/devilcove/timetraced/database"
@@ -18,6 +19,12 @@ const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 func displayStatus(c *gin.Context) {
 	page := models.GetPage()
 	c.HTML(http.StatusOK, "layout", page)
+}
+
+func displayLogin(c *gin.Context) {
+	page := models.GetPage()
+	page.Page = "login"
+	c.HTML(http.StatusOK, "loginFull", page)
 }
 
 func login(c *gin.Context) {
@@ -43,7 +50,8 @@ func login(c *gin.Context) {
 	session.Save()
 	user.Password = ""
 	slog.Info("login", "user", user.Username)
-	c.HTML(http.StatusOK, "layout", models.GetPage())
+	location := url.URL{Path: "/"}
+	c.Redirect(http.StatusFound, location.RequestURI())
 }
 
 func validateUser(visitor *models.User) bool {
@@ -74,7 +82,8 @@ func logout(c *gin.Context) {
 	//delete cookie
 	session.Clear()
 	session.Save()
-	c.JSON(http.StatusNoContent, nil)
+	location := url.URL{Path: "/"}
+	c.Redirect(http.StatusFound, location.RequestURI())
 }
 
 func addUser(c *gin.Context) {

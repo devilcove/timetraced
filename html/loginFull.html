@@ -1,4 +1,4 @@
-{{define "layout"}}
+{{define "loginFull"}}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -15,19 +15,19 @@
     <script src="https://unpkg.com/htmx.org@1.9.9"
         integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX"
         crossorigin="anonymous"></script>
-    <style> body, h1, h2, h3, h4, h5, h6 { font-family: '{{.Font}}'; }
+    <style>
+        body, h1, h2, h3, h4, h5, h6 { font-family: '{{.Font}}'; }
         a { text-decoration: none; }
         ul { list-style-type: none; }
     </style>
 </head>
 
-<body class="w3-theme-l3">
-    <div id="{{ .Page }}"></div>
+<body class="w3-theme-l3" onload="document.getElementById('login').style.display='block'">
     {{template "header" .}}
     {{template "navbar" .}}
-    {{template "content" .}}
+    <div class="w3-container w3-center w3-padding-64" id="content"> </div>
     {{template "footer" .}}
-    {{template "login"}}
+    {{template "login" . }}
 </body>
 
 </html>

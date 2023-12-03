@@ -5,6 +5,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -42,9 +43,9 @@ func setupRouter() *gin.Engine {
 		users.PUT("", editUser)
 		users.DELETE(":name", deleteUser)
 	}
+	router.GET("/login", displayLogin)
 	router.POST("/login", login)
 	router.GET("/logout", logout)
-	router.GET("/reports", report)
 	router.GET("/configuration", config)
 	router.POST("/setConfig", setConfig)
 	status := router.Group("/", auth)
@@ -62,13 +63,19 @@ func setupRouter() *gin.Engine {
 	}
 	reports := router.Group("/reports", auth)
 	{
-		reports.POST("", getReport)
+		reports.GET("/", report)
+		reports.POST("/", getReport)
 	}
 	return router
 }
 
 func processError(c *gin.Context, status int, message string) {
-	c.JSON(status, gin.H{"message": message})
+	slog.Error(message, "status", status)
+	content := models.ErrorMessage{
+		Status:  status,
+		Message: message,
+	}
+	c.HTML(http.StatusOK, "error", content)
 	c.Abort()
 }
 
@@ -76,8 +83,9 @@ func auth(c *gin.Context) {
 	session := sessions.Default(c)
 	loggedIn := session.Get("loggedin")
 	if loggedIn != true {
-		page := models.GetPage()
-		c.HTML(http.StatusFound, "login", page)
+		models.SetPage("login")
+		location := url.URL{Path: "/login"}
+		c.Redirect(http.StatusFound, location.RequestURI())
 		c.Abort()
 		return
 	}
