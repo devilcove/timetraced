@@ -86,6 +86,39 @@ func logout(c *gin.Context) {
 	c.Redirect(http.StatusFound, location.RequestURI())
 }
 
+func register(c *gin.Context) {
+	c.HTML(http.StatusOK, "registerFull", models.GetPage())
+}
+
+func regUser(c *gin.Context) {
+	var user models.User
+	var err error
+	if err := c.Bind(&user); err != nil {
+		processError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	if _, err := database.GetUser(user.Username); err == nil {
+		processError(c, http.StatusBadRequest, "user exists")
+		return
+	}
+	if user.Password == "" {
+		processError(c, http.StatusBadRequest, "password cannot be blank")
+		return
+	}
+	user.Password, err = hashPassword(user.Password)
+	if err != nil {
+		processError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if err := database.SaveUser(&user); err != nil {
+		processError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	slog.Info("new user added", "user", user.Username)
+	location := url.URL{Path: "/"}
+	c.Redirect(http.StatusFound, location.RequestURI())
+}
+
 func addUser(c *gin.Context) {
 	var user models.User
 	var err error

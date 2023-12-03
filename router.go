@@ -46,6 +46,8 @@ func setupRouter() *gin.Engine {
 	router.GET("/login", displayLogin)
 	router.POST("/login", login)
 	router.GET("/logout", logout)
+	router.GET("/register", register)
+	router.POST("/register", regUser)
 	router.GET("/configuration", config)
 	router.POST("/setConfig", setConfig)
 	status := router.Group("/", auth)
