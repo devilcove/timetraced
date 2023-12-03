@@ -10,7 +10,6 @@ import (
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -34,14 +33,6 @@ func setupRouter() *gin.Engine {
 	router.StaticFS("/favicon.ico", http.FS(icon))
 	//router.SetHTMLTemplate(template.Must(template.New("").Parse("html/*")))
 	router.SetTrustedProxies(nil)
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "DELETE"},
-		AllowHeaders:     []string{"Origin"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
 	router.Use(gin.Recovery(), session)
 	users := router.Group("/users", auth)
 	{
