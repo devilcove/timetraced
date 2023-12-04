@@ -42,6 +42,7 @@ func setupRouter() *gin.Engine {
 		users.POST("", addUser)
 		users.PUT("", editUser)
 		users.DELETE(":name", deleteUser)
+		users.GET(":name", getUser)
 	}
 	router.GET("/login", displayLogin)
 	router.POST("/login", login)
@@ -85,7 +86,7 @@ func auth(c *gin.Context) {
 	session := sessions.Default(c)
 	loggedIn := session.Get("loggedin")
 	if loggedIn != true {
-		models.SetPage("login")
+		//models.SetPage("login")
 		location := url.URL{Path: "/login"}
 		c.Redirect(http.StatusFound, location.RequestURI())
 		c.Abort()
