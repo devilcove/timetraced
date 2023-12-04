@@ -4,28 +4,36 @@
 <div class="w3-bar w3-theme-d5 w3-opacity w3-hover-opacity-off w3-center">
 
     <div class="w3-bar w3-hide-small ">
-        <div class="w3-dropdown-hover">
+        <div id="dropdown" class="w3-bar-item w3-button">
+            <details>
+            <summary><i class="fa fa-home w3-xxlarge"></i>Projects</summary>
+                <a href="/" class="w3-bar-item w3-button">Link1</a><br>
+                <a href="/" class="w3-bar-item w3-button">Link2</a><br>
+                <a href="/logout" class="w3-bar-item w3-button">Logout</a>
+            </details>
+        </div>
+        <button type="button" class="w3-bar-item w3-button" hx-get="/reports"
+            hx-target="#content">
+                <i class="fa fa-file-alt w3-xxlarge"></i>
+            REPORTS</button>
+        <!--<div class="w3-dropdown-hover">
             <button type="button" class="w3-bar-item w3-button">
                 <i class="fa fa-home w3-xxlarge"></i>
                 PROJECTS</button>
             <div class="w3-dropdown-content w3-bar-block">
                 <a href="/" class="w3-bar-item w3-button">Link1</a>
                 <a href="/" class="w3-bar-item w3-button">Link2</a>
-                <a href="/" class="w3-bar-item w3-button">Link3</a>
+                <a href="/logout" class="w3-bar-item w3-button">Logout</a>
             </div>
-        </div>
-        <button type="button" class="w3-bar-item w3-button" hx-get="/reports"
-            hx-target="#content">
-                <i class="fa fa-file-alt w3-xxlarge"></i>
-            REPORTS</button>
-        <button type="button" class="w3-bar-item w3-button" hx-get="/configuration"
-            hx-target="#content">
-                <i class="fa fa-cog w3-xxlarge"></i>
-            CONFIGURATION</button>
+        </div> -->
         <button type="button" class="w3-bar-item w3-button"  hx-get="/users"
             hx-target="#content">
                 <i class="fa fa-user w3-xxlarge"></i>
             USERS</button>
+        <button type="button" class="w3-bar-item w3-button" hx-get="/configuration"
+            hx-target="#content">
+                <i class="fa fa-cog w3-xxlarge"></i>
+            SETTINGS</button>
         <button type="button" class="w3-bar-item w3-button"  
                 onclick="document.getElementById('About').style.display='block'">
                 <i class="fa fa-info-circle w3-xxlarge"></i>
@@ -39,7 +47,7 @@
             <div class="w3-dropdown-content w3-bar-block">
                 <a href="/" class="w3-bar-item w3-button">Link1</a>
                 <a href="/" class="w3-bar-item w3-button">Link2</a>
-                <a href="/" class="w3-bar-item w3-button">Link3</a>
+                <a href="/logout" class="w3-bar-item w3-button">Logout</a>
             </div>
         </div>
         <button type="button" class="w3-bar-item w3-button" hx-get="/reports"
