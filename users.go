@@ -17,7 +17,9 @@ import (
 const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 
 func displayStatus(c *gin.Context) {
-	page := models.GetPage()
+	session := sessions.Default(c)
+	user := session.Get("user").(string)
+	page := models.GetUserPage(user)
 	c.HTML(http.StatusOK, "layout", page)
 }
 
@@ -210,6 +212,12 @@ func deleteUser(c *gin.Context) {
 }
 
 func getUsers(c *gin.Context) {
+	session := sessions.Default(c)
+	admin := session.Get("admin").(bool)
+	if !admin {
+		getUser(c)
+		return
+	}
 	users, err := database.GetAllUsers()
 	if err != nil {
 		processError(c, http.StatusInternalServerError, err.Error())
@@ -220,17 +228,22 @@ func getUsers(c *gin.Context) {
 		user.Password = ""
 		returnedUser = append(returnedUser, user)
 	}
-	c.JSON(http.StatusOK, returnedUser)
+	c.HTML(http.StatusOK, "user", returnedUser)
 }
 
 func getUser(c *gin.Context) {
 	session := sessions.Default(c)
-	user, err := database.GetUser(session.Get("user").(string))
+	editUser := c.Param("name")
+	if !session.Get("admin").(bool) && editUser != session.Get("user").(string) {
+		processError(c, http.StatusBadRequest, "non-admin cannot edit other users")
+		return
+	}
+	user, err := database.GetUser(editUser)
 	if err != nil {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.HTML(http.StatusOK, "editUser", user)
 
 }
 

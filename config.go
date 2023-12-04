@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/devilcove/timetraced/models"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/kr/pretty"
 )
@@ -17,12 +18,14 @@ func config(c *gin.Context) {
 }
 
 func setConfig(c *gin.Context) {
+	session := sessions.Default(c)
+	user := session.Get("user").(string)
 	config := models.Config{}
 	if err := c.Bind(&config); err != nil {
 		log.Println("failed to read config", err)
 	}
-	models.SetTheme(config.Theme)
-	models.SetFont(config.Font)
+	models.SetTheme(user, config.Theme)
+	models.SetFont(user, config.Font)
 	location := url.URL{Path: "/"}
 	c.Redirect(http.StatusFound, location.RequestURI())
 }
