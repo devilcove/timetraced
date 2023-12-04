@@ -1,14 +1,15 @@
 {{define "user"}}
+<!-- [html-validate-disable prefer-tbody]-->
 <h1>Users</h1>
 <div class="w3-row">
     <div class="w3-third"><br></div>
     <div class="w3-third">
         <table class="w3-table-all w3-center">
             <tr class="w3-theme-d5 w3-center">
-                <th>Name</th>
-                <th>Admin</th>
-                <th>Edit</th>
-                <th>Delete</th>
+                <td>Name</td>
+                <td>Admin</td>
+                <td>Edit</td>
+                <td>Delete</td>
             </tr>
             {{range . }}
             <tr>
