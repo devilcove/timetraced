@@ -8,12 +8,10 @@ import (
 	"github.com/devilcove/timetraced/models"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/kr/pretty"
 )
 
 func config(c *gin.Context) {
 	page := models.GetPage()
-	pretty.Println(page)
 	c.HTML(http.StatusOK, "config", page)
 }
 
