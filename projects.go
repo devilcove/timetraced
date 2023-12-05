@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"regexp"
 	"time"
 
@@ -45,8 +46,10 @@ func addProject(c *gin.Context) {
 		return
 	}
 	slog.Info("added", "project", project.Name)
-	c.JSON(http.StatusOK, project)
+	location := url.URL{Path: "/"}
+	c.Redirect(http.StatusFound, location.RequestURI())
 }
+
 func getProject(c *gin.Context) {
 	p := c.Param("name")
 	project, err := database.GetProject(p)
@@ -87,7 +90,8 @@ func start(c *gin.Context) {
 	}
 	models.TrackingActive(user, project)
 	slog.Info("tracking started", "project", project.Name)
-	c.JSON(http.StatusOK, project)
+	location := url.URL{Path: "/"}
+	c.Redirect(http.StatusFound, location.RequestURI())
 }
 
 func stopE(u string) error {

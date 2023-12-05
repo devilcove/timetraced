@@ -1,6 +1,8 @@
 package models
 
-import "log"
+import (
+	"log"
+)
 
 type Page struct {
 	Page               string
@@ -13,6 +15,7 @@ type Page struct {
 	CurrentSession     string
 	CurrentProjectTime string
 	Today              string
+	Projects           []string
 }
 
 // var page Page

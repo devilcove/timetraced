@@ -1,42 +1,44 @@
 {{define "navbar"}}
 <!-- [html-validate-disable no-inline-style]-->
+<!-- [html-validate-disable wcag/h32]-->
 
 <div class="w3-bar w3-theme-d5 w3-opacity w3-hover-opacity-off w3-center">
 
     <div class="w3-bar w3-hide-small ">
         <div id="dropdown" class="w3-bar-item w3-button">
             <details>
-            <summary><i class="fa fa-home w3-xxlarge"></i>Projects</summary>
-                <a href="/" class="w3-bar-item w3-button">Link1</a><br>
-                <a href="/" class="w3-bar-item w3-button">Link2</a><br>
+                <summary><i class="fa fa-home w3-xxlarge"></i>Projects</summary>
+                <hr>
+                {{range .Projects }}
+                <button type="button" class="w3-button" 
+                    hx-post="/projects/{{.}}/start"
+                    hx-target="#main">{{.}}
+                </button><br>
+                {{end}}
+                <hr>
+                <form action="/projects" method="post">
+                <input type="hidden" name="name" id="name">
+                <button type="button" class="w3-button"
+                    onclick='var project=prompt("Enter Project Name");
+                    var name=document.getElementById("name");
+                    name.value=project; submit()'
+                    >New Project</button><br>
+                </form>
                 <a href="/logout" class="w3-bar-item w3-button">Logout</a>
             </details>
         </div>
-        <button type="button" class="w3-bar-item w3-button" hx-get="/reports"
-            hx-target="#content">
-                <i class="fa fa-file-alt w3-xxlarge"></i>
+        <button type="button" class="w3-bar-item w3-button" hx-get="/reports" hx-target="#content">
+            <i class="fa fa-file-alt w3-xxlarge"></i>
             REPORTS</button>
-        <!--<div class="w3-dropdown-hover">
-            <button type="button" class="w3-bar-item w3-button">
-                <i class="fa fa-home w3-xxlarge"></i>
-                PROJECTS</button>
-            <div class="w3-dropdown-content w3-bar-block">
-                <a href="/" class="w3-bar-item w3-button">Link1</a>
-                <a href="/" class="w3-bar-item w3-button">Link2</a>
-                <a href="/logout" class="w3-bar-item w3-button">Logout</a>
-            </div>
-        </div> -->
-        <button type="button" class="w3-bar-item w3-button"  hx-get="/users"
-            hx-target="#content">
-                <i class="fa fa-user w3-xxlarge"></i>
+        <button type="button" class="w3-bar-item w3-button" hx-get="/users" hx-target="#content">
+            <i class="fa fa-user w3-xxlarge"></i>
             USERS</button>
-        <button type="button" class="w3-bar-item w3-button" hx-get="/configuration"
-            hx-target="#content">
-                <i class="fa fa-cog w3-xxlarge"></i>
+        <button type="button" class="w3-bar-item w3-button" hx-get="/configuration" hx-target="#content">
+            <i class="fa fa-cog w3-xxlarge"></i>
             SETTINGS</button>
-        <button type="button" class="w3-bar-item w3-button"  
-                onclick="document.getElementById('About').style.display='block'">
-                <i class="fa fa-info-circle w3-xxlarge"></i>
+        <button type="button" class="w3-bar-item w3-button"
+            onclick="document.getElementById('About').style.display='block'">
+            <i class="fa fa-info-circle w3-xxlarge"></i>
             ABOUT</button>
     </div>
 
@@ -50,17 +52,14 @@
                 <a href="/logout" class="w3-bar-item w3-button">Logout</a>
             </div>
         </div>
-        <button type="button" class="w3-bar-item w3-button" hx-get="/reports"
-            hx-target="#content">
+        <button type="button" class="w3-bar-item w3-button" hx-get="/reports" hx-target="#content">
             REPORTS</button>
-        <button type="button" class="w3-bar-item w3-button" hx-get="/configuration"
-            hx-target="#content">
+        <button type="button" class="w3-bar-item w3-button" hx-get="/configuration" hx-target="#content">
             CONFIGURATION</button>
-        <button type="button" class="w3-bar-item w3-button"  hx-get="/users"
-            hx-target="#content">
+        <button type="button" class="w3-bar-item w3-button" hx-get="/users" hx-target="#content">
             USERS</button>
-        <button type="button" class="w3-bar-item w3-button"  
-                onclick="document.getElementById('About').style.display='block'">
+        <button type="button" class="w3-bar-item w3-button"
+            onclick="document.getElementById('About').style.display='block'">
             ABOUT</button>
     </div>
 

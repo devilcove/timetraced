@@ -20,6 +20,14 @@ func displayStatus(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get("user").(string)
 	page := models.GetUserPage(user)
+	projects, err := database.GetAllProjects()
+	if err != nil {
+		slog.Error(err.Error())
+	} else {
+		for _, project := range projects {
+			page.Projects = append(page.Projects, project.Name)
+		}
+	}
 	c.HTML(http.StatusOK, "layout", page)
 }
 
@@ -215,7 +223,7 @@ func getUsers(c *gin.Context) {
 	session := sessions.Default(c)
 	admin := session.Get("admin").(bool)
 	if !admin {
-		getUser(c)
+		getCurrentUser(c)
 		return
 	}
 	users, err := database.GetAllUsers()
@@ -244,7 +252,17 @@ func getUser(c *gin.Context) {
 		return
 	}
 	c.HTML(http.StatusOK, "editUser", user)
+}
 
+func getCurrentUser(c *gin.Context) {
+	session := sessions.Default(c)
+	visitor := session.Get("user").(string)
+	user, err := database.GetUser(visitor)
+	if err != nil {
+		processError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.HTML(http.StatusOK, "editUser", user)
 }
 
 func hashPassword(password string) (string, error) {
