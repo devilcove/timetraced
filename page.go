@@ -34,4 +34,5 @@ func populate(page *models.Page, user string) {
 		return
 	}
 	page.Status = status
+	page.Tracking = models.IsTrackingActive(user)
 }
