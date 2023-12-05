@@ -1,13 +1,13 @@
 {{define "content"}}
 <div class="w3-container w3-center w3-padding-64" id="content">
     <label>Current Project</label>
-    <label>{{.CurrentProject}}</label><br>
+    <label>{{.Status.Current}}</label><br>
     <ul>
         <li><label>Time This Session </label>
-            <label>{{.CurrentSession}}</label><br>
+            <label>{{.Status.Elapsed}}</label><br>
         </li>
         <li><label>Time Today </label>
-            <label>{{.CurrentProjectTime}}</label><br>
+            <label>{{.Status.CurrentTotal}}</label><br>
         </li>
     </ul>
     {{ if .Tracking }}
@@ -17,12 +17,12 @@
     {{end}}
 
     <h2> Time worked today </h2>
-    {{range $key, $value := .Summary}}
-    <strong><label>{{ $key }}</label></strong> {{ $value }}<br>
+    {{range .Status.Durations}}
+    <strong><label>{{ .Project }}</label></strong> {{ .Elapsed }}<br>
     {{end}}
     <br>
     <strong><label>Total Time Today</label></strong>
-    <label>{{.Today}}</label><br>
+    <label>{{ .Status.DailyTotal }}</label><br>
     <br>
     <br>
     <br>

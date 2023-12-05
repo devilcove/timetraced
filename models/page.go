@@ -5,17 +5,13 @@ import (
 )
 
 type Page struct {
-	Page               string
-	Version            string
-	Theme              string
-	Font               string
-	Tracking           bool
-	Summary            map[string]string
-	CurrentProject     string
-	CurrentSession     string
-	CurrentProjectTime string
-	Today              string
-	Projects           []string
+	Page     string
+	Version  string
+	Theme    string
+	Font     string
+	Tracking bool
+	Projects []string
+	Status   StatusResponse
 }
 
 // var page Page

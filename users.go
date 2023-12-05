@@ -16,21 +16,6 @@ import (
 
 const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 
-func displayStatus(c *gin.Context) {
-	session := sessions.Default(c)
-	user := session.Get("user").(string)
-	page := models.GetUserPage(user)
-	projects, err := database.GetAllProjects()
-	if err != nil {
-		slog.Error(err.Error())
-	} else {
-		for _, project := range projects {
-			page.Projects = append(page.Projects, project.Name)
-		}
-	}
-	c.HTML(http.StatusOK, "layout", page)
-}
-
 func displayLogin(c *gin.Context) {
 	page := models.GetPage()
 	page.Page = "login"
