@@ -8,7 +8,7 @@ import (
 )
 
 type ErrorMessage struct {
-	Status  int
+	Status  string
 	Message string
 }
 

@@ -40,7 +40,7 @@ func setupRouter() *gin.Engine {
 		users.GET("", getUsers)
 		users.GET("current", getUser)
 		users.POST("", addUser)
-		users.PUT("", editUser)
+		users.POST(":name", editUser)
 		users.DELETE(":name", deleteUser)
 		users.GET(":name", getUser)
 	}
@@ -77,7 +77,7 @@ func setupRouter() *gin.Engine {
 	return router
 }
 
-func processError(c *gin.Context, status int, message string) {
+func processError(c *gin.Context, status string, message string) {
 	slog.Error(message, "status", status)
 	content := models.ErrorMessage{
 		Status:  status,

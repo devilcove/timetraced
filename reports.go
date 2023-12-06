@@ -20,23 +20,23 @@ func getReport(c *gin.Context) {
 	}
 	reportRequest := models.ReportRequest{}
 	if err := c.Bind(&reportRequest); err != nil {
-		processError(c, http.StatusBadRequest, "could not decode request")
+		processError(c, "bad request", "could not decode request")
 		return
 	}
 	dbRequest.Start, err = time.Parse("2006-01-02", reportRequest.Start)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	dbRequest.End, err = time.Parse("2006-01-02", reportRequest.End)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	if reportRequest.Project == "" {
 		allProjects, err := database.GetAllProjects()
 		if err != nil {
-			processError(c, http.StatusInternalServerError, err.Error())
+			processError(c, "ServerError", err.Error())
 			return
 		}
 		for _, project := range allProjects {
@@ -53,7 +53,7 @@ func getReport(c *gin.Context) {
 		dbRequest.Project = project
 		data, err := database.GetReportRecords(dbRequest)
 		if err != nil {
-			processError(c, http.StatusInternalServerError, err.Error())
+			processError(c, "ServerError", err.Error())
 			return
 		}
 		var total time.Duration

@@ -26,7 +26,7 @@ func login(c *gin.Context) {
 	session := sessions.Default(c)
 	var user models.User
 	if err := c.Bind(&user); err != nil {
-		processError(c, http.StatusBadRequest, "invalid user")
+		processError(c, "bad request", "invalid user")
 		slog.Error("bind err", "error", err)
 		return
 	}
@@ -34,7 +34,7 @@ func login(c *gin.Context) {
 	if !validateUser(&user) {
 		session.Clear()
 		session.Save()
-		processError(c, http.StatusBadRequest, "invalid user")
+		processError(c, "bad request", "invalid user")
 		slog.Warn("validation error", "user", user.Username)
 		return
 	}
@@ -89,24 +89,24 @@ func regUser(c *gin.Context) {
 	var user models.User
 	var err error
 	if err := c.Bind(&user); err != nil {
-		processError(c, http.StatusBadRequest, err.Error())
+		processError(c, "bad request", err.Error())
 		return
 	}
 	if _, err := database.GetUser(user.Username); err == nil {
-		processError(c, http.StatusBadRequest, "user exists")
+		processError(c, "bad request", "user exists")
 		return
 	}
 	if user.Password == "" {
-		processError(c, http.StatusBadRequest, "password cannot be blank")
+		processError(c, "bad request", "password cannot be blank")
 		return
 	}
 	user.Password, err = hashPassword(user.Password)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	if err := database.SaveUser(&user); err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	slog.Info("new user added", "user", user.Username)
@@ -120,27 +120,27 @@ func addUser(c *gin.Context) {
 	session := sessions.Default(c)
 	admin := session.Get("admin")
 	if !admin.(bool) {
-		processError(c, http.StatusUnauthorized, "only admins can create new users")
+		processError(c, "unauthorized", "only admins can create new users")
 	}
 	if err := c.BindJSON(&user); err != nil {
-		processError(c, http.StatusBadRequest, "could not decode request into json")
+		processError(c, "bad request", "could not decode request into json")
 		return
 	}
 	if _, err := database.GetUser(user.Username); err == nil {
-		processError(c, http.StatusBadRequest, "user exists")
+		processError(c, "bad request", "user exists")
 		return
 	}
 	if user.Username == "" || user.Password == "" {
-		processError(c, http.StatusBadRequest, "username or password cannot be blank")
+		processError(c, "bad request", "username or password cannot be blank")
 		return
 	}
 	user.Password, err = hashPassword(user.Password)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	if err := database.SaveUser(&user); err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	slog.Info("new user added", "user", user.Username)
@@ -148,27 +148,31 @@ func addUser(c *gin.Context) {
 }
 
 func editUser(c *gin.Context) {
-	var user models.User
+	var user struct {
+		Password string
+		Verify   string
+	}
 	var err error
+	username := c.Param("name")
 	session := sessions.Default(c)
 	admin := session.Get("admin")
-	visitor := session.Get("user")
-	if err := c.BindJSON(&user); err != nil {
-		processError(c, http.StatusBadRequest, "could not decode request into json")
+	visitor := session.Get("user").(string)
+	if err := c.Bind(&user); err != nil {
+		processError(c, "bad request", "could not decode request into json")
 		return
 	}
-	if user.Username != visitor && !admin.(bool) {
-		processError(c, http.StatusUnauthorized, "you are not authorized to edit this user")
+	if username != visitor && !admin.(bool) {
+		processError(c, "unauthorized", "you are not authorized to edit this user")
 		return
 	}
-	updatedUser, err := database.GetUser(user.Username)
+	updatedUser, err := database.GetUser(username)
 	if err != nil {
-		processError(c, http.StatusBadRequest, "user does not exist")
+		processError(c, "bad request", "user does not exist")
 		return
 	}
 	updatedUser.Password, err = hashPassword(user.Password)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	if !admin.(bool) {
@@ -176,12 +180,12 @@ func editUser(c *gin.Context) {
 	}
 	updatedUser.Updated = time.Now()
 	if err := database.SaveUser(&updatedUser); err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
-	updatedUser.Password = ""
 	slog.Info("user updated", "user", updatedUser.Username)
-	c.JSON(http.StatusOK, updatedUser)
+	location := url.URL{Path: "/"}
+	c.Redirect(http.StatusFound, location.RequestURI())
 }
 
 func deleteUser(c *gin.Context) {
@@ -189,15 +193,15 @@ func deleteUser(c *gin.Context) {
 	admin := session.Get("admin")
 	user := c.Param("name")
 	if !admin.(bool) {
-		processError(c, http.StatusUnauthorized, "you are not authorized to delete this user")
+		processError(c, "unauthorized", "you are not authorized to delete this user")
 		return
 	}
 	if _, err := database.GetUser(user); err != nil {
-		processError(c, http.StatusBadRequest, "user does not exist")
+		processError(c, "bad request", "user does not exist")
 		return
 	}
 	if err := database.DeleteUser(user); err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	slog.Info("deleted", "user", user)
@@ -213,7 +217,7 @@ func getUsers(c *gin.Context) {
 	}
 	users, err := database.GetAllUsers()
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	returnedUser := []models.User{}
@@ -228,12 +232,12 @@ func getUser(c *gin.Context) {
 	session := sessions.Default(c)
 	editUser := c.Param("name")
 	if !session.Get("admin").(bool) && editUser != session.Get("user").(string) {
-		processError(c, http.StatusBadRequest, "non-admin cannot edit other users")
+		processError(c, "bad request", "non-admin cannot edit other users")
 		return
 	}
 	user, err := database.GetUser(editUser)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	c.HTML(http.StatusOK, "editUser", user)
@@ -244,7 +248,7 @@ func getCurrentUser(c *gin.Context) {
 	visitor := session.Get("user").(string)
 	user, err := database.GetUser(visitor)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	c.HTML(http.StatusOK, "editUser", user)

@@ -49,11 +49,11 @@ func getStatus(user string) (models.StatusResponse, error) {
 func getRecord(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		processError(c, 100, err.Error())
+		processError(c, "Bad Request", err.Error())
 	}
 	record, err := database.GetRecord(id)
 	if err != nil {
-		processError(c, 100, err.Error())
+		processError(c, "server error", err.Error())
 	}
 	c.HTML(http.StatusOK, "editRecord", record)
 }
@@ -62,30 +62,26 @@ func editRecord(c *gin.Context) {
 	var err error
 	edit := models.EditRecord{}
 	if err := c.Bind(&edit); err != nil {
-		processError(c, 100, err.Error())
+		processError(c, "bad request", err.Error())
 		return
 	}
 	record, err := database.GetRecord(uuid.MustParse(edit.ID))
 	if err != nil {
-		processError(c, 200, err.Error())
-		return
-	}
-	if err := c.Bind(&edit); err != nil {
-		processError(c, 300, err.Error())
+		processError(c, "server error", err.Error())
 		return
 	}
 	record.End, err = time.Parse("2006-01-0215:04", edit.End+edit.EndTime)
 	if err != nil {
-		processError(c, 400, err.Error())
+		processError(c, "bad request", err.Error())
 		return
 	}
 	record.Start, err = time.Parse("2006-01-0215:04", edit.Start+edit.StartTime)
 	if err != nil {
-		processError(c, 500, err.Error())
+		processError(c, "bad request", err.Error())
 		return
 	}
 	if err := database.SaveRecord(&record); err != nil {
-		processError(c, 600, err.Error())
+		processError(c, "server error", err.Error())
 		return
 	}
 	location := url.URL{Path: "/"}

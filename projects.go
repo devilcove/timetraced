@@ -18,7 +18,7 @@ import (
 func getProjects(c *gin.Context) {
 	projects, err := database.GetAllProjects()
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, projects)
@@ -27,22 +27,22 @@ func getProjects(c *gin.Context) {
 func addProject(c *gin.Context) {
 	var project models.Project
 	if err := c.BindJSON(&project); err != nil {
-		processError(c, http.StatusBadRequest, "could not decode request into json "+err.Error())
+		processError(c, "BadRequest", "could not decode request into json "+err.Error())
 		return
 	}
 	if regexp.MustCompile(`\s+`).MatchString(project.Name) {
-		processError(c, http.StatusBadRequest, "invalid project name")
+		processError(c, "BadRequest", "invalid project name")
 		return
 	}
 	if _, err := database.GetProject(project.Name); err == nil {
-		processError(c, http.StatusBadRequest, "project exists")
+		processError(c, "BadRequest", "project exists")
 		return
 	}
 	project.ID = uuid.New()
 	project.Active = true
 	project.Updated = time.Now()
 	if err := database.SaveProject(&project); err != nil {
-		processError(c, http.StatusInternalServerError, "error saving project "+err.Error())
+		processError(c, "ServerError", "error saving project "+err.Error())
 		return
 	}
 	slog.Info("added", "project", project.Name)
@@ -54,7 +54,7 @@ func getProject(c *gin.Context) {
 	p := c.Param("name")
 	project, err := database.GetProject(p)
 	if err != nil {
-		processError(c, http.StatusBadRequest, "could not retrieve project "+err.Error())
+		processError(c, "BadRequest", "could not retrieve project "+err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, project)
@@ -66,16 +66,16 @@ func start(c *gin.Context) {
 	p := c.Param("name")
 	project, err := database.GetProject(p)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, "error reading project "+err.Error())
+		processError(c, "ServerError", "error reading project "+err.Error())
 		return
 	}
 	if !project.Active {
-		processError(c, http.StatusBadRequest, "project is not active")
+		processError(c, "BadRequest", "project is not active")
 		return
 	}
 	if models.IsTrackingActive(user) {
 		if err := stopE(user); err != nil {
-			processError(c, http.StatusInternalServerError, err.Error())
+			processError(c, "ServerError", err.Error())
 		}
 	}
 	record := models.Record{
@@ -85,7 +85,7 @@ func start(c *gin.Context) {
 		Start:   time.Now(),
 	}
 	if err := database.SaveRecord(&record); err != nil {
-		processError(c, http.StatusInternalServerError, "failed to save record "+err.Error())
+		processError(c, "ServerError", "failed to save record "+err.Error())
 		return
 	}
 	models.TrackingActive(user, project)
@@ -116,7 +116,7 @@ func stop(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get("user").(string)
 	if err := stopE(user); err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	location := url.URL{Path: "/"}
@@ -128,7 +128,7 @@ func status(c *gin.Context) {
 	user := session.Get("user").(string)
 	status, err := getStatus(user)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(c, "ServerError", err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, status)
