@@ -69,6 +69,11 @@ func setupRouter() *gin.Engine {
 		reports.GET("/", report)
 		reports.POST("/", getReport)
 	}
+	records := router.Group("records", auth)
+	{
+		records.GET("/:id", getRecord)
+		records.POST("/:id", editRecord)
+	}
 	return router
 }
 

@@ -41,7 +41,7 @@ func login(c *gin.Context) {
 	session.Set("loggedin", true)
 	session.Set("user", user.Username)
 	session.Set("admin", user.IsAdmin)
-	session.Options(sessions.Options{MaxAge: SessionAge, Secure: true, SameSite: http.SameSiteLaxMode})
+	session.Options(sessions.Options{MaxAge: SessionAge, Secure: false, SameSite: http.SameSiteLaxMode})
 	session.Save()
 	user.Password = ""
 	slog.Info("login", "user", user.Username)

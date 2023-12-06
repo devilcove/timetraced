@@ -2,16 +2,18 @@ package models
 
 import (
 	"log"
+	"time"
 )
 
 type Page struct {
-	Page     string
-	Version  string
-	Theme    string
-	Font     string
-	Tracking bool
-	Projects []string
-	Status   StatusResponse
+	Page        string
+	Version     string
+	Theme       string
+	Font        string
+	Tracking    bool
+	Projects    []string
+	Status      StatusResponse
+	DefaultDate string
 }
 
 // var page Page
@@ -19,10 +21,11 @@ var pages map[string]Page
 
 func initialize() Page {
 	return Page{
-		Page:    "login",
-		Version: "v0.1.0",
-		Theme:   "indigo",
-		Font:    "Roboto",
+		Page:        "login",
+		Version:     "v0.1.0",
+		Theme:       "indigo",
+		Font:        "Roboto",
+		DefaultDate: time.Now().Local().Format("2006-01-02"),
 	}
 }
 func init() {
