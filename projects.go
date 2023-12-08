@@ -76,6 +76,7 @@ func start(c *gin.Context) {
 	if models.IsTrackingActive(user) {
 		if err := stopE(user); err != nil {
 			processError(c, "ServerError", err.Error())
+			return
 		}
 	}
 	record := models.Record{
@@ -121,15 +122,4 @@ func stop(c *gin.Context) {
 	}
 	location := url.URL{Path: "/"}
 	c.Redirect(http.StatusFound, location.RequestURI())
-}
-
-func status(c *gin.Context) {
-	session := sessions.Default(c)
-	user := session.Get("user").(string)
-	status, err := getStatus(user)
-	if err != nil {
-		processError(c, "ServerError", err.Error())
-		return
-	}
-	c.JSON(http.StatusOK, status)
 }

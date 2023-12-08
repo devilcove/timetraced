@@ -1,8 +1,9 @@
 {{define "report"}}
-<h1>Reports</h1>
+<!-- [html-validate-disable attribute-allowed-values]-->
 <div class="w3-row">
     <div class="w3-third"><br></div>
     <div class="w3-third">
+        <h1>Reports</h1>
         <form class="w3-container" hx-post="/reports" hx-target="#content">
             <p><label>Start Date</label></p>
             <p><input type="date" name="start" value="{{.DefaultDate}}" required></p>
@@ -25,23 +26,28 @@
 {{end}}
 
 {{define "results"}}
-<h1>TimeTrace Report</h1>
-{{range .}}
-<h2>Project {{.Project}}</h2>
-{{range .Items}}
-<button hx-get="/records/{{ .ID }}" hx-target="#content" type="button">
-    {{.Start.Format "Jan 02, 2006 15:04"}} &nbsp; {{.End.Format "Jan 02, 2006 15:04"}}
-</button><br>
-{{end}}
-<h2>{{.Total}}</h2>
-{{end}}
-{{end}}
-
-{{define "editRecord"}}
-<h1>Edit Record</h1>
 <div class="w3-row">
     <div class="w3-third"><br></div>
     <div class="w3-third">
+        <h1>TimeTrace Report</h1>
+        {{range .}}
+        <h2>Project {{.Project}}</h2>
+        {{range .Items}}
+        <button hx-get="/records/{{ .ID }}" hx-target="#content" type="button">
+            {{.Start.Format "Jan 02, 2006 15:04"}} &nbsp; {{.End.Format "Jan 02, 2006 15:04"}}
+        </button><br>
+        {{end}}
+        <h2>{{.Total}}</h2>
+        {{end}}
+    </div>
+</div>
+{{end}}
+
+{{define "editRecord"}}
+<div class="w3-row">
+    <div class="w3-third"><br></div>
+    <div class="w3-third">
+        <h1>Edit Record</h1>
         <form action="/records/{{ .ID }}" method="post">
             <input type="hidden" name="ID" value="{{.ID}}">
             <label>Start</label>

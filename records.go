@@ -50,10 +50,12 @@ func getRecord(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		processError(c, "Bad Request", err.Error())
+		return
 	}
 	record, err := database.GetRecord(id)
 	if err != nil {
 		processError(c, "server error", err.Error())
+		return
 	}
 	c.HTML(http.StatusOK, "editRecord", record)
 }

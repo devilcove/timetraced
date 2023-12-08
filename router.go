@@ -5,7 +5,6 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"os"
 	"time"
 
@@ -48,13 +47,10 @@ func setupRouter() *gin.Engine {
 	router.POST("/login", login)
 	router.GET("/logout", logout)
 	router.GET("/register", register)
+	router.GET("/", displayStatus)
 	router.POST("/register", regUser)
 	router.GET("/configuration", config)
 	router.POST("/setConfig", setConfig)
-	status := router.Group("/", auth)
-	{
-		status.GET("/", displayStatus)
-	}
 	projects := router.Group("/projects", auth)
 	{
 		projects.GET("", getProjects)
@@ -66,8 +62,8 @@ func setupRouter() *gin.Engine {
 	}
 	reports := router.Group("/reports", auth)
 	{
-		reports.GET("/", report)
-		reports.POST("/", getReport)
+		reports.GET("", report)
+		reports.POST("", getReport)
 	}
 	records := router.Group("records", auth)
 	{
@@ -83,17 +79,20 @@ func processError(c *gin.Context, status string, message string) {
 		Status:  status,
 		Message: message,
 	}
-	c.HTML(http.StatusOK, "error", content)
+	c.HTML(http.StatusBadRequest, "error", content)
 	c.Abort()
 }
 
 func auth(c *gin.Context) {
 	session := sessions.Default(c)
 	loggedIn := session.Get("loggedin")
-	if loggedIn != true {
-		//models.SetPage("login")
-		location := url.URL{Path: "/login"}
-		c.Redirect(http.StatusFound, location.RequestURI())
+	if loggedIn == nil {
+		slog.Info("not logged in -- redirect to /")
+		page := models.GetPage()
+		page.DisplayLogin = true
+		location := `{"path":"/", "target":"#content")`
+		c.Writer.Header().Set("HX-Location", location)
+		c.HTML(http.StatusOK, "layout", page)
 		c.Abort()
 		return
 	}

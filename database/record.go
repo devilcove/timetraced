@@ -106,6 +106,9 @@ func GetTodaysRecords() ([]models.Record, error) {
 }
 
 func GetTodaysRecordsForUser(user string) ([]models.Record, error) {
+	if user == "" {
+		return []models.Record{}, nil
+	}
 	records := []models.Record{}
 	record := models.Record{}
 	today := truncateToStart(time.Now())

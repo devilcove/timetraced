@@ -1,6 +1,5 @@
-{{define "layout"}}
-
 <!DOCTYPE html>
+{{define "layout"}}
 <html lang="en">
 
 <head>
@@ -15,19 +14,37 @@
     <script src="https://unpkg.com/htmx.org@1.9.9"
         integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX"
         crossorigin="anonymous"></script>
-    <style> body, h1, h2, h3, h4, h5, h6 { font-family: '{{.Font}}'; }
-        a { text-decoration: none; }
-        ul { list-style-type: none; }
+    <script src="https://unpkg.com/htmx.org/dist/ext/response-targets.js"></script>
+    <style>
+        body,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: '{{.Font}}';
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        ul {
+            list-style-type: none;
+        }
     </style>
 </head>
 
 <body class="w3-theme-l3" id="main">
-    <div id="{{ .Page }}"></div>
-    {{template "header" .}}
-    {{template "navbar" .}}
-    {{template "content" .}}
-    {{template "footer" .}}
-    {{template "login"}}
+    <div hx-ext="response-targets">
+        {{template "header" .}}
+        {{template "navbar" .}}
+        <div id="error"></div>
+        {{template "content" .}}
+        {{template "footer" .}}
+        {{template "about" . }}
+    </div>
 </body>
 
 </html>

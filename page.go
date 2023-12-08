@@ -12,10 +12,26 @@ import (
 )
 
 func displayStatus(c *gin.Context) {
+	var page models.Page
 	session := sessions.Default(c)
-	user := session.Get("user").(string)
+	user := session.Get("user")
+	loggedIn := session.Get("loggedin")
+	slog.Info("displaying status for", "user", user, "loggedIn", loggedIn)
+	if user == nil {
+		page = populatePage("")
+	} else {
+		page = populatePage(user.(string))
+	}
+	if loggedIn != nil {
+		page.DisplayLogin = !loggedIn.(bool)
+	}
+	slog.Info("displaystatus", "page", loggedIn)
+	c.HTML(http.StatusOK, "layout", page)
+}
+
+func populatePage(user string) models.Page {
 	page := models.GetUserPage(user)
-	populate(&page, user)
+	page.Tracking = models.IsTrackingActive(user)
 	projects, err := database.GetAllProjects()
 	if err != nil {
 		slog.Error(err.Error())
@@ -24,15 +40,10 @@ func displayStatus(c *gin.Context) {
 			page.Projects = append(page.Projects, project.Name)
 		}
 	}
-	c.HTML(http.StatusOK, "layout", page)
-}
-
-func populate(page *models.Page, user string) {
 	status, err := getStatus(user)
 	if err != nil {
 		log.Println("getStatus", err)
-		return
 	}
 	page.Status = status
-	page.Tracking = models.IsTrackingActive(user)
+	return page
 }

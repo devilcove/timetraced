@@ -19,9 +19,9 @@ type ReportRecord struct {
 }
 
 type ReportRequest struct {
-	Start   string `form:"start"`
-	End     string `form:"end"`
-	Project string `form:"project"`
+	Start   string `json:"start" form:"start"`
+	End     string `json:"end" form:"end"`
+	Project string `json:"project" form:"project"`
 }
 
 type DatabaseReportRequest struct {

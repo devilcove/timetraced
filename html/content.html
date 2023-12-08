@@ -1,5 +1,24 @@
 {{define "content"}}
 <!-- [html-validate-disable prefer-tbody]-->
+<!-- [html-validate-disable no-dup-id]-->
+{{if (eq .DisplayLogin true)}}
+<div id="content">
+    <div class="w3-container w3-center w3-theme-dark">
+        <h1>Timetrace Login</h1>
+        <!-- <form action="/login" method="post"> -->
+        <form hx-post="/login" hx-target="#content" hx-target-error="#error">
+            <label for="username">Username</label><br>
+            <input type="text" placeholder="enter username" name="username" required><br>
+            <label for="pass">Password</label><br>
+            <input type="password" placeholder="enter password" name="password" required><br>
+            <button type="submit">Login</button>
+        </form>
+        <div class="w3-container w3-padding-32">
+            <a hx-get="/register" hx-target="#content">Don't have an Account? Register</a>
+        </div>
+    </div>
+</div>
+{{ else }}
 <div class="w3-container w3-center w3-padding-64" id="content">
     <div class="w3-row">
         <div class="w3-third"><br></div>
@@ -26,16 +45,16 @@
 
             <h2> Time worked today </h2>
             <table class="w3-table">
-            {{range .Status.Durations}}
-            <tr>
-                <td><b><label class="w3-left">{{ .Project }}</label></b></td>
-                <td>{{ .Elapsed }}</td>
+                {{range .Status.Durations}}
+                <tr>
+                    <td><b><label class="w3-left">{{ .Project }}</label></b></td>
+                    <td>{{ .Elapsed }}</td>
                 </tr>
-            {{end}}
-            <tr>
-            <td><strong><label>Total Time Today</label></strong></td>
-            <td><label>{{ .Status.DailyTotal }}</label><br></td>
-            </tr>
+                {{end}}
+                <tr>
+                    <td><strong><label>Total Time Today</label></strong></td>
+                    <td><label>{{ .Status.DailyTotal }}</label><br></td>
+                </tr>
             </table>
             <br>
             <br>
@@ -43,5 +62,5 @@
         </div>
     </div>
 </div>
-{{template "about" . }}
+{{end}}
 {{end}}

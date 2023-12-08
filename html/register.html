@@ -1,10 +1,9 @@
 {{define "register"}}
 <!-- [html-validate-disable no-inline-style]-->
-<div id="register" class="w3-modal">
-    <div class="w3-modal-content w3-card-4 w3-padding" style="width:50%">
+<div id="register" >
         <div class="w3-container w3-center w3-theme-dark">
             <h1>Timetrace Registration</h1>
-            <form action="/register" method="post">
+            <form hx-post="/register" hx-target="#content" hx-target-error="#error">
                 <label for="username">Username</label><br>
                 <input type="text" placeholder="enter username" name="username" required><br>
                 <label for="pass">Password</label><br>
@@ -12,9 +11,8 @@
                 <button type="submit">Register</button>
             </form>
             <div class="w3-container w3-padding-32">
-                <a href="/login">Already have an Account? Login</a>
+                <a hx-get="/login" hx-target="#content">Already have an Account? Login</a>
             </div>
         </div>
-    </div>
 </div>
 {{end}}

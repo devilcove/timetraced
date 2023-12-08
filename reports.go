@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -20,9 +21,15 @@ func getReport(c *gin.Context) {
 	}
 	reportRequest := models.ReportRequest{}
 	if err := c.Bind(&reportRequest); err != nil {
+		slog.Error("unable to bind", "error", err)
 		processError(c, "bad request", "could not decode request")
+		if c.Request.Body != nil {
+			body, _ := io.ReadAll(c.Request.Body)
+			slog.Info(string(body))
+		}
 		return
 	}
+
 	dbRequest.Start, err = time.Parse("2006-01-02", reportRequest.Start)
 	if err != nil {
 		processError(c, "ServerError", err.Error())
@@ -78,8 +85,7 @@ func getReport(c *gin.Context) {
 func report(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get("user").(string)
-	page := models.GetUserPage(user)
-	populate(&page, user)
+	page := populatePage(user)
 	projects, err := database.GetAllProjects()
 	if err != nil {
 		slog.Error(err.Error())

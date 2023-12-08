@@ -6,14 +6,14 @@ import (
 )
 
 type Page struct {
-	Page        string
-	Version     string
-	Theme       string
-	Font        string
-	Tracking    bool
-	Projects    []string
-	Status      StatusResponse
-	DefaultDate string
+	DisplayLogin bool
+	Version      string
+	Theme        string
+	Font         string
+	Tracking     bool
+	Projects     []string
+	Status       StatusResponse
+	DefaultDate  string
 }
 
 // var page Page
@@ -21,7 +21,6 @@ var pages map[string]Page
 
 func initialize() Page {
 	return Page{
-		Page:        "login",
 		Version:     "v0.1.0",
 		Theme:       "indigo",
 		Font:        "Roboto",
@@ -37,6 +36,9 @@ func GetPage() Page {
 }
 
 func GetUserPage(u string) Page {
+	if u == "" {
+		return initialize()
+	}
 	if page, ok := pages[u]; ok {
 		return page
 	}
@@ -60,14 +62,5 @@ func SetFont(user, font string) {
 		page = initialize()
 	}
 	page.Font = font
-	pages[user] = page
-}
-
-func SetPage(user, p string) {
-	page, ok := pages[user]
-	if !ok {
-		page = initialize()
-	}
-	page.Page = p
 	pages[user] = page
 }

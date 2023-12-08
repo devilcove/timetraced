@@ -17,9 +17,9 @@ import (
 const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 
 func displayLogin(c *gin.Context) {
-	page := models.GetPage()
-	page.Page = "login"
-	c.HTML(http.StatusOK, "loginFull", page)
+	page := populatePage("")
+	page.DisplayLogin = true
+	c.HTML(http.StatusOK, "login", page)
 }
 
 func login(c *gin.Context) {
@@ -45,8 +45,17 @@ func login(c *gin.Context) {
 	session.Save()
 	user.Password = ""
 	slog.Info("login", "user", user.Username)
-	location := url.URL{Path: "/"}
-	c.Redirect(http.StatusFound, location.RequestURI())
+	page := populatePage(user.Username)
+	page.DisplayLogin = false
+	projects, err := database.GetAllProjects()
+	if err != nil {
+		slog.Error(err.Error())
+	} else {
+		for _, project := range projects {
+			page.Projects = append(page.Projects, project.Name)
+		}
+	}
+	c.HTML(http.StatusOK, "content", page)
 }
 
 func validateUser(visitor *models.User) bool {
@@ -77,12 +86,12 @@ func logout(c *gin.Context) {
 	//delete cookie
 	session.Clear()
 	session.Save()
-	location := url.URL{Path: "/"}
-	c.Redirect(http.StatusFound, location.RequestURI())
+	c.HTML(http.StatusOK, "login", "")
 }
 
 func register(c *gin.Context) {
-	c.HTML(http.StatusOK, "registerFull", models.GetPage())
+	page := models.GetPage()
+	c.HTML(http.StatusOK, "register", page)
 }
 
 func regUser(c *gin.Context) {
@@ -121,6 +130,7 @@ func addUser(c *gin.Context) {
 	admin := session.Get("admin")
 	if !admin.(bool) {
 		processError(c, "unauthorized", "only admins can create new users")
+		return
 	}
 	if err := c.BindJSON(&user); err != nil {
 		processError(c, "bad request", "could not decode request into json")
