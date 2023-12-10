@@ -16,12 +16,8 @@
                 </button><br>
                 {{end}}
                 <hr>
-                <form action="/projects" method="post">
-                <input type="hidden" name="name" id="name">
-                <button type="button" class="w3-button"
-                    onclick='var project=prompt("Enter Project Name");
-                    var name=document.getElementById("name");
-                    name.value=project; submit()'
+                <form hx-get="/projects/add" hx-target="#content">
+                <button type="submit" class="w3-button"
                     >New Project</button><br>
                 </form>
                 <a href="/logout" class="w3-bar-item w3-button">Logout</a>
@@ -63,5 +59,19 @@
             ABOUT</button>
     </div>
 
+</div>
+{{end}}
+
+{{define "addProject"}}
+<div id="addProject">
+    <div class="w3-container w3-center w3-theme">
+        <h1>Add New Project</h1>
+        <form hx-post="/projects" hx-target="#content" hx-target-error="#error">
+            <label for="Name">New Project</label><br>
+            <input type="text" placeholder="new project name" name="Name" required><br>
+            <p><button class="w3-button w3-theme-dark w3-padding large" type="button" hx-get="/" hx-target="#content">Cancel</button>
+            <button class="w3-button w3-theme-dark w3-padding large" type="submit">Submit</button></p>
+        </form>
+    </div>
 </div>
 {{end}}

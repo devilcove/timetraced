@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/devilcove/timetraced/database"
@@ -49,12 +48,12 @@ func getStatus(user string) (models.StatusResponse, error) {
 func getRecord(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		processError(c, "Bad Request", err.Error())
+		processError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	record, err := database.GetRecord(id)
 	if err != nil {
-		processError(c, "server error", err.Error())
+		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.HTML(http.StatusOK, "editRecord", record)
@@ -64,28 +63,27 @@ func editRecord(c *gin.Context) {
 	var err error
 	edit := models.EditRecord{}
 	if err := c.Bind(&edit); err != nil {
-		processError(c, "bad request", err.Error())
+		processError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	record, err := database.GetRecord(uuid.MustParse(edit.ID))
 	if err != nil {
-		processError(c, "server error", err.Error())
+		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	record.End, err = time.Parse("2006-01-0215:04", edit.End+edit.EndTime)
 	if err != nil {
-		processError(c, "bad request", err.Error())
+		processError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	record.Start, err = time.Parse("2006-01-0215:04", edit.Start+edit.StartTime)
 	if err != nil {
-		processError(c, "bad request", err.Error())
+		processError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	if err := database.SaveRecord(&record); err != nil {
-		processError(c, "server error", err.Error())
+		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	location := url.URL{Path: "/"}
-	c.Redirect(http.StatusFound, location.RequestURI())
+	displayStatus(c)
 }

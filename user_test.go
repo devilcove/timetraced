@@ -35,16 +35,12 @@ func TestAdminLogin(t *testing.T) {
 	}
 	body, _ := json.Marshal(data)
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
-	response, err := io.ReadAll(w.Result().Body)
-	assert.Nil(t, err)
-	user := models.User{}
-	err = json.Unmarshal(response, &user)
-	assert.Nil(t, err)
-	assert.Equal(t, true, user.IsAdmin)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.NotNil(t, w.Result().Cookies())
 }
+
 func TestNonAdminLogin(t *testing.T) {
 	deleteAllUsers()
 	err := createTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
@@ -60,11 +56,8 @@ func TestNonAdminLogin(t *testing.T) {
 	router.ServeHTTP(w, req)
 	response, err := io.ReadAll(w.Result().Body)
 	assert.Nil(t, err)
-	user := models.User{}
-	err = json.Unmarshal(response, &user)
-	assert.Nil(t, err)
-	assert.Equal(t, false, user.IsAdmin)
-	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, string(response), "invalid user")
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.NotNil(t, w.Result().Cookies())
 }
 
@@ -84,6 +77,9 @@ func TestBadLogin(t *testing.T) {
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
+		response, err := io.ReadAll(w.Body)
+		assert.Nil(t, err)
+		assert.Contains(t, string(response), "invalid user")
 	})
 	t.Run("invalid data", func(t *testing.T) {
 		router := setupRouter()
@@ -103,9 +99,7 @@ func TestBadLogin(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
 		body, _ := io.ReadAll(w.Result().Body)
-		msg := models.ErrorMessage{}
-		json.Unmarshal(body, &msg)
-		assert.Equal(t, "invalid user", msg.Message)
+		assert.Contains(t, string(body), "invalid user")
 
 	})
 }
@@ -115,7 +109,7 @@ func TestLogout(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/logout", nil)
 	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusNoContent, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
 }
 
@@ -150,6 +144,9 @@ func TestDeleteUser(t *testing.T) {
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		body, err := io.ReadAll(w.Body)
+		assert.Nil(t, err)
+		assert.Contains(t, string(body), "not authorized to delete this user")
 	})
 	t.Run("admin delete", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
@@ -170,6 +167,9 @@ func TestDeleteUser(t *testing.T) {
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
+		response, err := io.ReadAll(w.Body)
+		assert.Nil(t, err)
+		assert.Contains(t, string(response), "user does not exist")
 	})
 }
 func TestEditUser(t *testing.T) {
@@ -184,10 +184,13 @@ func TestEditUser(t *testing.T) {
 		router := setupRouter()
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "tester2", Password: "newPassword"})
-		req, _ := http.NewRequest(http.MethodPut, "/users", bytes.NewBuffer(body))
+		req, _ := http.NewRequest(http.MethodPost, "/users/tester2", bytes.NewBuffer(body))
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		response, err := io.ReadAll(w.Body)
+		assert.Nil(t, err)
+		assert.Contains(t, string(response), "not authorized to edit this user")
 	})
 	t.Run("edit user by admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
@@ -195,7 +198,8 @@ func TestEditUser(t *testing.T) {
 		router := setupRouter()
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "tester2", Password: "newPassword"})
-		req, _ := http.NewRequest(http.MethodPut, "/users", bytes.NewBuffer(body))
+		req, _ := http.NewRequest(http.MethodPost, "/users/tester2", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -208,7 +212,8 @@ func TestEditUser(t *testing.T) {
 		router := setupRouter()
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "tester", Password: "newPassword"})
-		req, _ := http.NewRequest(http.MethodPut, "/users", bytes.NewBuffer(body))
+		req, _ := http.NewRequest(http.MethodPost, "/users/tester", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -220,14 +225,12 @@ func TestEditUser(t *testing.T) {
 		assert.NotNil(t, cookie)
 		router := setupRouter()
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodPut, "/users", nil)
+		req, _ := http.NewRequest(http.MethodPost, "/users/tester", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		body, _ := io.ReadAll(w.Result().Body)
-		message := models.ErrorMessage{}
-		json.Unmarshal(body, &message)
-		assert.Equal(t, "could not decode request into json", message.Message)
+		assert.Contains(t, string(body), "could not decode request into json")
 	})
 	t.Run("user does not exist", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
@@ -235,14 +238,12 @@ func TestEditUser(t *testing.T) {
 		router := setupRouter()
 		w := httptest.NewRecorder()
 		payload, _ := json.Marshal(models.User{Username: "nosuchuser", Password: "newPassword"})
-		req, _ := http.NewRequest(http.MethodPut, "/users", bytes.NewBuffer(payload))
+		req, _ := http.NewRequest(http.MethodPost, "/users/nosuchuser", bytes.NewBuffer(payload))
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		body, _ := io.ReadAll(w.Result().Body)
-		message := models.ErrorMessage{}
-		json.Unmarshal(body, &message)
-		assert.Equal(t, "user does not exist", message.Message)
+		assert.Contains(t, string(body), "user does not exist")
 	})
 
 }
@@ -277,6 +278,8 @@ func TestAddUser(t *testing.T) {
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		body, _ = io.ReadAll(w.Body)
+		assert.Contains(t, string(body), "only admins can create new users")
 	})
 
 	t.Run("empty password", func(t *testing.T) {
@@ -290,9 +293,7 @@ func TestAddUser(t *testing.T) {
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		body, _ = io.ReadAll(w.Result().Body)
-		message := models.ErrorMessage{}
-		json.Unmarshal(body, &message)
-		assert.Equal(t, "username or password cannot be blank", message.Message)
+		assert.Contains(t, string(body), "username or password cannot be blank")
 	})
 
 	t.Run("incomplete data", func(t *testing.T) {
@@ -306,9 +307,7 @@ func TestAddUser(t *testing.T) {
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		body, _ := io.ReadAll(w.Result().Body)
-		message := models.ErrorMessage{}
-		json.Unmarshal(body, &message)
-		assert.Equal(t, "could not decode request into json", message.Message)
+		assert.Contains(t, string(body), "could not decode request into json")
 	})
 
 }
@@ -318,6 +317,7 @@ func testLogin(data models.User) *http.Cookie {
 	w := httptest.NewRecorder()
 	body, _ := json.Marshal(data)
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
 	for _, cookie := range w.Result().Cookies() {
 		if cookie.Name == "time" {

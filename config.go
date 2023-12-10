@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"net/url"
 
 	"github.com/devilcove/timetraced/models"
 	"github.com/gin-contrib/sessions"
@@ -24,6 +23,5 @@ func setConfig(c *gin.Context) {
 	}
 	models.SetTheme(user, config.Theme)
 	models.SetFont(user, config.Font)
-	location := url.URL{Path: "/"}
-	c.Redirect(http.StatusFound, location.RequestURI())
+	displayStatus(c)
 }

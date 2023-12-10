@@ -2,10 +2,13 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/devilcove/timetraced/database"
@@ -54,6 +57,7 @@ func setupRouter() *gin.Engine {
 	projects := router.Group("/projects", auth)
 	{
 		projects.GET("", getProjects)
+		projects.GET("/add", displayProjectForm)
 		projects.POST("", addProject)
 		projects.GET("/:name", getProject)
 		projects.POST("/:name/start", start)
@@ -73,13 +77,11 @@ func setupRouter() *gin.Engine {
 	return router
 }
 
-func processError(c *gin.Context, status string, message string) {
-	slog.Error(message, "status", status)
-	content := models.ErrorMessage{
-		Status:  status,
-		Message: message,
-	}
-	c.HTML(http.StatusBadRequest, "error", content)
+func processError(c *gin.Context, status int, message string) {
+	pc, fn, line, _ := runtime.Caller(1)
+	source := fmt.Sprintf("%s[%s:%d]", runtime.FuncForPC(pc).Name(), filepath.Base(fn), line)
+	slog.Error(message, "status", status, "source", source)
+	c.HTML(status, "error", message)
 	c.Abort()
 }
 

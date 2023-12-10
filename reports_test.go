@@ -27,33 +27,29 @@ func TestGetReport(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "/reports", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		body, _ := io.ReadAll(w.Result().Body)
-		msg := models.ErrorMessage{}
-		err := json.Unmarshal(body, &msg)
+		body, err := io.ReadAll(w.Result().Body)
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Equal(t, "could not decode request", msg.Message)
+		assert.Contains(t, string(body), "could not decode request")
 	})
 	t.Run("no records", func(t *testing.T) {
 		router := setupRouter()
 		w := httptest.NewRecorder()
-		data := models.ReportRequest{
-			Start: time.Now().Add(-24 * time.Hour),
-			End:   time.Now(),
+		request := models.ReportRequest{
+			Start:   time.Now().Add(-24 * time.Hour).Format("2006-01-02"),
+			End:     time.Now().Format("2006-01-02"),
+			Project: "nilProject",
 		}
-		payload, err := json.Marshal(data)
+		payload, err := json.Marshal(&request)
 		assert.Nil(t, err)
 		req, _ := http.NewRequest(http.MethodPost, "/reports", bytes.NewBuffer(payload))
 		req.AddCookie(cookie)
+		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(w, req)
-		body, _ := io.ReadAll(w.Result().Body)
-		//msg := models.Report{}
-		//err = json.Unmarshal(body, &msg)
+		body, err := io.ReadAll(w.Result().Body)
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusOK, w.Code)
-		//t.Log(msg)
-		//t.Log(string(body))
-		assert.Equal(t, 2, len(body))
+		assert.NotContains(t, string(body), "<tr>")
 	})
 
 	t.Run("one user/one project", func(t *testing.T) {
@@ -61,44 +57,42 @@ func TestGetReport(t *testing.T) {
 		router := setupRouter()
 		w := httptest.NewRecorder()
 		data := models.ReportRequest{
-			Start:    time.Now().Add(-24 * time.Hour),
-			End:      time.Now(),
-			Projects: []string{"timetrace"},
-			Users:    []string{"test"},
+			Start:   time.Now().Add(-24 * time.Hour).Format("2006-01-02"),
+			End:     time.Now().Format("2006-01-02"),
+			Project: "timetrace",
 		}
 		payload, err := json.Marshal(data)
 		assert.Nil(t, err)
 		req, _ := http.NewRequest(http.MethodPost, "/reports", bytes.NewBuffer(payload))
 		req.AddCookie(cookie)
+		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(w, req)
 		body, _ := io.ReadAll(w.Result().Body)
-		msg := []models.Report{}
-		err = json.Unmarshal(body, &msg)
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, 2, len(msg))
+		assert.Contains(t, string(body), "<h2>Project timetrace")
 	})
 
 	t.Run("all records", func(t *testing.T) {
+		createTestRecords()
+		createTestProjects()
 		router := setupRouter()
 		w := httptest.NewRecorder()
 		data := models.ReportRequest{
-			Start:    time.Now().Add(-72 * time.Hour),
-			End:      time.Now(),
-			Projects: []string{"timetrace", "golf"},
-			Users:    []string{"test", "test2"},
+			Start:   time.Now().Add(-72 * time.Hour).Format("2006-01-02"),
+			End:     time.Now().Format("2006-01-02"),
+			Project: "",
 		}
 		payload, err := json.Marshal(data)
 		assert.Nil(t, err)
 		req, _ := http.NewRequest(http.MethodPost, "/reports", bytes.NewBuffer(payload))
+		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		body, _ := io.ReadAll(w.Result().Body)
-		msg := []models.Report{}
-		err = json.Unmarshal(body, &msg)
+		body, err := io.ReadAll(w.Result().Body)
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, 7, len(msg))
+		assert.Contains(t, string(body), "<button hx-get=\"/records")
 	})
 
 }

@@ -13,7 +13,7 @@ var (
 
 type Project struct {
 	ID      uuid.UUID
-	Name    string `json:"name" form:"name"`
+	Name    string
 	Active  bool
 	Updated time.Time
 }

@@ -22,28 +22,29 @@ func getReport(c *gin.Context) {
 	reportRequest := models.ReportRequest{}
 	if err := c.Bind(&reportRequest); err != nil {
 		slog.Error("unable to bind", "error", err)
-		processError(c, "bad request", "could not decode request")
+		processError(c, http.StatusBadRequest, "could not decode request")
 		if c.Request.Body != nil {
 			body, _ := io.ReadAll(c.Request.Body)
 			slog.Info(string(body))
 		}
 		return
 	}
+	slog.Info("reportRequest", "request", reportRequest)
 
 	dbRequest.Start, err = time.Parse("2006-01-02", reportRequest.Start)
 	if err != nil {
-		processError(c, "ServerError", err.Error())
+		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	dbRequest.End, err = time.Parse("2006-01-02", reportRequest.End)
 	if err != nil {
-		processError(c, "ServerError", err.Error())
+		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	if reportRequest.Project == "" {
 		allProjects, err := database.GetAllProjects()
 		if err != nil {
-			processError(c, "ServerError", err.Error())
+			processError(c, http.StatusInternalServerError, err.Error())
 			return
 		}
 		for _, project := range allProjects {
@@ -60,7 +61,7 @@ func getReport(c *gin.Context) {
 		dbRequest.Project = project
 		data, err := database.GetReportRecords(dbRequest)
 		if err != nil {
-			processError(c, "ServerError", err.Error())
+			processError(c, http.StatusInternalServerError, err.Error())
 			return
 		}
 		var total time.Duration
