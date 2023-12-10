@@ -23,30 +23,42 @@ func getProjects(c *gin.Context) {
 	c.JSON(http.StatusOK, projects)
 }
 
+func displayProjectForm(c *gin.Context) {
+	c.HTML(http.StatusOK, "addProject", "")
+}
+
 func addProject(c *gin.Context) {
 	var project models.Project
-	if err := c.BindJSON(&project); err != nil {
+	if err := c.Bind(&project); err != nil {
 		processError(c, http.StatusBadRequest, "could not decode request into json "+err.Error())
 		return
 	}
-	if regexp.MustCompile(`\s+`).MatchString(project.Name) {
+	slog.Info("addproject1", "project", project)
+	if regexp.MustCompile(`\s+`).MatchString(project.Name) || project.Name == "" {
 		processError(c, http.StatusBadRequest, "invalid project name")
 		return
 	}
-	if _, err := database.GetProject(project.Name); err == nil {
+	existing, err := database.GetProject(project.Name)
+	if err != nil {
+		processError(c, http.StatusInternalServerError, "database error")
+		return
+	}
+	if existing.Name == project.Name {
 		processError(c, http.StatusBadRequest, "project exists")
 		return
 	}
 	project.ID = uuid.New()
 	project.Active = true
 	project.Updated = time.Now()
+	slog.Info("add project", "project", project)
 	if err := database.SaveProject(&project); err != nil {
 		processError(c, http.StatusInternalServerError, "error saving project "+err.Error())
 		return
 	}
 	slog.Info("added", "project", project.Name)
-	c.JSON(http.StatusOK, project)
+	displayStatus(c)
 }
+
 func getProject(c *gin.Context) {
 	p := c.Param("name")
 	project, err := database.GetProject(p)
@@ -73,6 +85,7 @@ func start(c *gin.Context) {
 	if models.IsTrackingActive(user) {
 		if err := stopE(user); err != nil {
 			processError(c, http.StatusInternalServerError, err.Error())
+			return
 		}
 	}
 	record := models.Record{
@@ -87,7 +100,7 @@ func start(c *gin.Context) {
 	}
 	models.TrackingActive(user, project)
 	slog.Info("tracking started", "project", project.Name)
-	c.JSON(http.StatusOK, project)
+	displayStatus(c)
 }
 
 func stopE(u string) error {
@@ -115,16 +128,5 @@ func stop(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, nil)
-}
-
-func status(c *gin.Context) {
-	session := sessions.Default(c)
-	user := session.Get("user").(string)
-	status, err := getStatus(user)
-	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-	c.JSON(http.StatusOK, status)
+	displayStatus(c)
 }

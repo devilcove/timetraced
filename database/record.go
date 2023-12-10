@@ -2,7 +2,6 @@ package database
 
 import (
 	"encoding/json"
-	"slices"
 	"time"
 
 	"github.com/devilcove/timetraced/models"
@@ -107,6 +106,9 @@ func GetTodaysRecords() ([]models.Record, error) {
 }
 
 func GetTodaysRecordsForUser(user string) ([]models.Record, error) {
+	if user == "" {
+		return []models.Record{}, nil
+	}
 	records := []models.Record{}
 	record := models.Record{}
 	today := truncateToStart(time.Now())
@@ -128,7 +130,7 @@ func GetTodaysRecordsForUser(user string) ([]models.Record, error) {
 	return records, nil
 }
 
-func GetReportRecords(req models.ReportRequest) ([]models.Record, error) {
+func GetReportRecords(req models.DatabaseReportRequest) ([]models.Record, error) {
 	records := []models.Record{}
 	record := models.Record{}
 	start := truncateToStart(req.Start)
@@ -139,8 +141,8 @@ func GetReportRecords(req models.ReportRequest) ([]models.Record, error) {
 			if err := json.Unmarshal(v, &record); err != nil {
 				return err
 			}
-			if slices.Contains(req.Users, record.User) &&
-				slices.Contains(req.Projects, record.Project) &&
+			if (req.User == record.User) &&
+				(req.Project == record.Project) &&
 				record.Start.After(start) &&
 				record.Start.Before(end) {
 				if record.End.IsZero() {

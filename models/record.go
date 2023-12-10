@@ -15,6 +15,14 @@ type Record struct {
 	End     time.Time
 }
 
+type EditRecord struct {
+	ID        string
+	Start     string
+	StartTime string
+	End       string
+	EndTime   string
+}
+
 type Durations map[string]string
 
 type Duration struct {

@@ -1,0 +1,30 @@
+{{define "config"}}
+<h1>Configuration</h1>
+<form action="/setConfig" method="post">
+    <p><label>Theme</label>
+    <select name="theme">
+        <option>indigo</option>
+        <option>red</option>
+        <option>pink</option>
+        <option>purple</option>
+        <option>blue</option>
+        <option>cyan</option>
+        <option>teal</option>
+        <option>khaki</option>
+        <option>blue-grey</option>
+        <option>grey</option>
+        <option>black</option>
+    </select></p>
+    <p><label>Font&nbsp;&nbsp;</label>
+    <select name="font">
+        <option>Roboto</option>
+        <option>Montserrat</option>
+        <option>Lato</option>
+        <option>Ubuntu</option>
+        <option>Tangerine</option>
+    </select></p>
+    <p><button class="w3-button w3-theme-dark w3-padding large" type="button" hx-get="/" hx-target="#main">Cancel</button>
+    <button class="w3-button w3-theme-dark w3-padding large" type="submit">Submit</button></p>
+</form>
+<br><br><br><br><br>
+{{end}}
