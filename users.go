@@ -81,6 +81,10 @@ func checkPassword(plain, hash *models.User) bool {
 
 func logout(c *gin.Context) {
 	session := sessions.Default(c)
+	user := session.Get("user")
+	if err := stopE(user.(string)); err != nil {
+		slog.Error("failed to stop tracking for user on logout", "error", err)
+	}
 	slog.Info("logout", "user", session.Get("user"))
 	//delete cookie
 	session.Clear()
