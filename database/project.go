@@ -37,7 +37,7 @@ func GetAllProjects() ([]models.Project, error) {
 	var project models.Project
 	if err := db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(PROJECT_TABLE_NAME))
-		b.ForEach(func(k, v []byte) error {
+		_ = b.ForEach(func(k, v []byte) error {
 			if err := json.Unmarshal(v, &project); err != nil {
 				return err
 			}

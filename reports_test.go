@@ -18,7 +18,8 @@ import (
 func TestGetReport(t *testing.T) {
 	deleteAllUsers()
 	deleteAllRecords()
-	createTestUser(models.User{Username: "test", Password: "testing"})
+	err := createTestUser(models.User{Username: "test", Password: "testing"})
+	assert.Nil(t, err)
 	cookie := testLogin(models.User{Username: "test", Password: "testing"})
 	assert.NotNil(t, cookie)
 	t.Run("no request", func(t *testing.T) {
@@ -98,7 +99,7 @@ func TestGetReport(t *testing.T) {
 }
 
 func createTestRecords() {
-	database.SaveRecord(&models.Record{
+	_ = database.SaveRecord(&models.Record{
 		ID:      uuid.New(),
 		Project: "timetrace",
 		User:    "test",
@@ -106,42 +107,42 @@ func createTestRecords() {
 		End:     time.Now().Add(time.Minute * -5),
 	})
 
-	database.SaveRecord(&models.Record{
+	_ = database.SaveRecord(&models.Record{
 		ID:      uuid.New(),
 		Project: "timetrace",
 		User:    "test",
 		Start:   time.Now().Add(time.Hour * -48),
 		End:     time.Now().Add(time.Hour * -47),
 	})
-	database.SaveRecord(&models.Record{
+	_ = database.SaveRecord(&models.Record{
 		ID:      uuid.New(),
 		Project: "timetrace",
 		User:    "test",
 		Start:   time.Now().Add(time.Hour * -49),
 		End:     time.Now().Add(time.Hour * -48),
 	})
-	database.SaveRecord(&models.Record{
+	_ = database.SaveRecord(&models.Record{
 		ID:      uuid.New(),
 		Project: "timetrace",
 		User:    "test",
 		Start:   time.Now().Add(time.Hour * -24),
 		End:     time.Now().Add(time.Hour * -23),
 	})
-	database.SaveRecord(&models.Record{
+	_ = database.SaveRecord(&models.Record{
 		ID:      uuid.New(),
 		Project: "golf",
 		User:    "test",
 		Start:   time.Now().Add(time.Hour * -48),
 		End:     time.Now().Add(time.Hour * -47),
 	})
-	database.SaveRecord(&models.Record{
+	_ = database.SaveRecord(&models.Record{
 		ID:      uuid.New(),
 		Project: "golf",
 		User:    "test",
 		Start:   time.Now().Add(time.Hour * -24),
 		End:     time.Now().Add(time.Hour * -23),
 	})
-	database.SaveRecord(&models.Record{
+	_ = database.SaveRecord(&models.Record{
 		ID:      uuid.New(),
 		Project: "timetrace",
 		User:    "test2",
@@ -153,6 +154,6 @@ func createTestRecords() {
 func deleteAllRecords() {
 	records, _ := database.GetAllRecords()
 	for _, record := range records {
-		database.DeleteRecord(record.ID)
+		_ = database.DeleteRecord(record.ID)
 	}
 }

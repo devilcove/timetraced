@@ -35,7 +35,7 @@ func setupRouter() *gin.Engine {
 	router.Static("assets", "./assets")
 	router.StaticFS("/favicon.ico", http.FS(icon))
 	//router.SetHTMLTemplate(template.Must(template.New("").Parse("html/*")))
-	router.SetTrustedProxies(nil)
+	_ = router.SetTrustedProxies(nil)
 	router.Use(gin.Recovery(), session)
 	users := router.Group("/users", auth)
 	{
@@ -121,7 +121,7 @@ func checkDefaultUser() {
 	if err != nil {
 		slog.Error("hash error", "error", err)
 	}
-	database.SaveUser(&models.User{
+	_ = database.SaveUser(&models.User{
 		Username: user,
 		Password: password,
 		IsAdmin:  true,

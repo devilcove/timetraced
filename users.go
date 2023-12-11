@@ -32,7 +32,7 @@ func login(c *gin.Context) {
 	slog.Debug("login by", "user", user)
 	if !validateUser(&user) {
 		session.Clear()
-		session.Save()
+		_ = session.Save()
 		processError(c, http.StatusBadRequest, "invalid user")
 		slog.Warn("validation error", "user", user.Username)
 		return
@@ -41,7 +41,7 @@ func login(c *gin.Context) {
 	session.Set("user", user.Username)
 	session.Set("admin", user.IsAdmin)
 	session.Options(sessions.Options{MaxAge: SessionAge, Secure: false, SameSite: http.SameSiteLaxMode})
-	session.Save()
+	_ = session.Save()
 	user.Password = ""
 	slog.Info("login", "user", user.Username)
 	page := populatePage(user.Username)
@@ -90,7 +90,7 @@ func logout(c *gin.Context) {
 	slog.Info("logout", "user", session.Get("user"))
 	//delete cookie
 	session.Clear()
-	session.Save()
+	_ = session.Save()
 	c.HTML(http.StatusOK, "login", "")
 }
 

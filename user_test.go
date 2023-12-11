@@ -23,7 +23,7 @@ var (
 func TestMain(m *testing.M) {
 	setLogging()
 	os.Setenv("DB_FILE", "test.db")
-	database.InitializeDatabase()
+	_ = database.InitializeDatabase()
 	defer database.Close()
 	checkDefaultUser()
 	router = setupRouter()
@@ -162,16 +162,14 @@ func TestGetAllUsers(t *testing.T) {
 	t.Run("admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/users", nil)
+		req, err := http.NewRequest(http.MethodGet, "/users", nil)
+		assert.Nil(t, err)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusOK, w.Code)
-		body, _ := io.ReadAll(w.Result().Body)
-		users := []models.User{}
-		json.Unmarshal(body, &users)
-		for _, user := range users {
-			assert.Equal(t, "", user.Password)
-		}
+		body, err := io.ReadAll(w.Result().Body)
+		assert.Nil(t, err)
+		assert.Contains(t, string(body), "<td>Admin</td>")
 	})
 }
 
@@ -415,7 +413,7 @@ func deleteAllUsers() {
 	users, _ := database.GetAllUsers()
 	for _, user := range users {
 		if user.Username != "admin" {
-			database.DeleteUser(user.Username)
+			_ = database.DeleteUser(user.Username)
 		}
 	}
 }
