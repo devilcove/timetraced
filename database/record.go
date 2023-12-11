@@ -39,7 +39,7 @@ func GetAllRecords() ([]models.Record, error) {
 	var record models.Record
 	if err := db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(RECORDS_TABLE_NAME))
-		b.ForEach(func(k, v []byte) error {
+		_ = b.ForEach(func(k, v []byte) error {
 			if err := json.Unmarshal(v, &record); err != nil {
 				return err
 			}
@@ -58,7 +58,7 @@ func GetAllRecordsForUser(u string) ([]models.Record, error) {
 	var record models.Record
 	if err := db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(RECORDS_TABLE_NAME))
-		b.ForEach(func(k, v []byte) error {
+		_ = b.ForEach(func(k, v []byte) error {
 			if err := json.Unmarshal(v, &record); err != nil {
 				return err
 			}
@@ -89,7 +89,7 @@ func GetTodaysRecords() ([]models.Record, error) {
 	today := truncateToStart(time.Now())
 	if err := db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(RECORDS_TABLE_NAME))
-		b.ForEach(func(k, v []byte) error {
+		_ = b.ForEach(func(k, v []byte) error {
 			if err := json.Unmarshal(v, &record); err != nil {
 				return err
 			}
@@ -114,7 +114,7 @@ func GetTodaysRecordsForUser(user string) ([]models.Record, error) {
 	today := truncateToStart(time.Now())
 	if err := db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(RECORDS_TABLE_NAME))
-		b.ForEach(func(k, v []byte) error {
+		_ = b.ForEach(func(k, v []byte) error {
 			if err := json.Unmarshal(v, &record); err != nil {
 				return err
 			}
@@ -137,7 +137,7 @@ func GetReportRecords(req models.DatabaseReportRequest) ([]models.Record, error)
 	end := truncateToEnd(req.End)
 	if err := db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(RECORDS_TABLE_NAME))
-		b.ForEach(func(k, v []byte) error {
+		_ = b.ForEach(func(k, v []byte) error {
 			if err := json.Unmarshal(v, &record); err != nil {
 				return err
 			}

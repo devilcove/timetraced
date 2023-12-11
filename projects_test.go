@@ -103,7 +103,8 @@ func TestAddProject(t *testing.T) {
 func TestGetProjects(t *testing.T) {
 	deleteAllProjects()
 	createTestProjects()
-	createTestUser(models.User{Username: "test", Password: "test", IsAdmin: false})
+	err := createTestUser(models.User{Username: "test", Password: "test", IsAdmin: false})
+	assert.Nil(t, err)
 
 	t.Run("existing project", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "test", Password: "test"})
@@ -173,7 +174,8 @@ func TestGetProjects(t *testing.T) {
 
 func TestGetStatus(t *testing.T) {
 	createTestRecords()
-	createTestUser(models.User{Username: "test", Password: "test", IsAdmin: false})
+	err := createTestUser(models.User{Username: "test", Password: "test", IsAdmin: false})
+	assert.Nil(t, err)
 	cookie := testLogin(models.User{Username: "test", Password: "test"})
 	assert.NotNil(t, cookie)
 
@@ -208,36 +210,36 @@ func TestStartStopProject(t *testing.T) {
 func deleteAllProjects() {
 	projects, _ := database.GetAllProjects()
 	for _, p := range projects {
-		database.DeleteProject(p.Name)
+		_ = database.DeleteProject(p.Name)
 	}
 }
 
 func createTestProjects() {
-	database.SaveProject(&models.Project{
+	_ = database.SaveProject(&models.Project{
 		ID:      uuid.New(),
 		Name:    "test",
 		Active:  true,
 		Updated: time.Now(),
 	})
-	database.SaveProject(&models.Project{
+	_ = database.SaveProject(&models.Project{
 		ID:      uuid.New(),
 		Name:    "test2",
 		Active:  true,
 		Updated: time.Now(),
 	})
-	database.SaveProject(&models.Project{
+	_ = database.SaveProject(&models.Project{
 		ID:      uuid.New(),
 		Name:    "inactive",
 		Active:  false,
 		Updated: time.Now(),
 	})
-	database.SaveProject(&models.Project{
+	_ = database.SaveProject(&models.Project{
 		ID:      uuid.New(),
 		Name:    "timetrace",
 		Active:  false,
 		Updated: time.Now(),
 	})
-	database.SaveProject(&models.Project{
+	_ = database.SaveProject(&models.Project{
 		ID:      uuid.New(),
 		Name:    "golf",
 		Active:  false,

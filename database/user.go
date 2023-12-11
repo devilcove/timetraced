@@ -44,7 +44,7 @@ func GetAllUsers() ([]models.User, error) {
 		if b == nil {
 			return errors.New("no users")
 		}
-		b.ForEach(func(k, v []byte) error {
+		_ = b.ForEach(func(k, v []byte) error {
 			if err := json.Unmarshal(v, &user); err != nil {
 				return err
 			}

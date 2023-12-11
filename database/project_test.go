@@ -20,12 +20,13 @@ func TestSaveProject(t *testing.T) {
 }
 
 func TestGetProject(t *testing.T) {
-	SaveProject(&models.Project{
+	err := SaveProject(&models.Project{
 		ID:      uuid.New(),
 		Name:    "test",
 		Active:  true,
 		Updated: time.Now(),
 	})
+	assert.Nil(t, err)
 	t.Run("exists", func(t *testing.T) {
 		project, err := GetProject("test")
 		assert.Nil(t, err)

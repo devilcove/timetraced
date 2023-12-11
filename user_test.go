@@ -23,7 +23,7 @@ var (
 func TestMain(m *testing.M) {
 	setLogging()
 	os.Setenv("DB_FILE", "test.db")
-	database.InitializeDatabase()
+	_ = database.InitializeDatabase()
 	defer database.Close()
 	checkDefaultUser()
 	router = setupRouter()
@@ -168,7 +168,8 @@ func TestGetAllUsers(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 		body, _ := io.ReadAll(w.Result().Body)
 		users := []models.User{}
-		json.Unmarshal(body, &users)
+		err := json.Unmarshal(body, &users)
+		assert.Nil(t, err)
 		for _, user := range users {
 			assert.Equal(t, "", user.Password)
 		}
@@ -415,7 +416,7 @@ func deleteAllUsers() {
 	users, _ := database.GetAllUsers()
 	for _, user := range users {
 		if user.Username != "admin" {
-			database.DeleteUser(user.Username)
+			_ = database.DeleteUser(user.Username)
 		}
 	}
 }

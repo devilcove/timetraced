@@ -3,12 +3,14 @@ package database
 import (
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
 	//main.setLogging()
 	os.Setenv("DB_FILE", "test.db")
-	InitializeDatabase()
+	_ = InitializeDatabase()
 	defer Close()
 	//main.checkDefaultUser()
 	os.Exit(m.Run())
@@ -20,6 +22,7 @@ func TestCloseDB(t *testing.T) {
 	})
 	t.Run("closed", func(t *testing.T) {
 		Close()
-		InitializeDatabase()
+		err := InitializeDatabase()
+		assert.Nil(t, err)
 	})
 }
