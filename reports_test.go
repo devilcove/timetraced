@@ -22,7 +22,7 @@ func TestGetReport(t *testing.T) {
 	cookie := testLogin(models.User{Username: "test", Password: "testing"})
 	assert.NotNil(t, cookie)
 	t.Run("no request", func(t *testing.T) {
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/reports", nil)
 		req.AddCookie(cookie)
@@ -33,7 +33,7 @@ func TestGetReport(t *testing.T) {
 		assert.Contains(t, string(body), "could not decode request")
 	})
 	t.Run("no records", func(t *testing.T) {
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		request := models.ReportRequest{
 			Start:   time.Now().Add(-24 * time.Hour).Format("2006-01-02"),
@@ -54,7 +54,7 @@ func TestGetReport(t *testing.T) {
 
 	t.Run("one user/one project", func(t *testing.T) {
 		createTestRecords()
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		data := models.ReportRequest{
 			Start:   time.Now().Add(-24 * time.Hour).Format("2006-01-02"),
@@ -76,7 +76,7 @@ func TestGetReport(t *testing.T) {
 	t.Run("all records", func(t *testing.T) {
 		createTestRecords()
 		createTestProjects()
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		data := models.ReportRequest{
 			Start:   time.Now().Add(-72 * time.Hour).Format("2006-01-02"),

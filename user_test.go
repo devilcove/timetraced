@@ -11,7 +11,13 @@ import (
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+)
+
+var (
+	router *gin.Engine
+	w      *httptest.ResponseRecorder
 )
 
 func TestMain(m *testing.M) {
@@ -20,12 +26,56 @@ func TestMain(m *testing.M) {
 	database.InitializeDatabase()
 	defer database.Close()
 	checkDefaultUser()
+	router = setupRouter()
+	w = httptest.NewRecorder()
 	os.Exit(m.Run())
 }
 
+func TestDisplayLogin(t *testing.T) {
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	assert.Nil(t, err)
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestRegister(t *testing.T) {
+	req, err := http.NewRequest(http.MethodGet, "/register", nil)
+	assert.Nil(t, err)
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+	t.Run("existing", func(t *testing.T) {
+		err := createTestUser(models.User{Username: "tester", Password: "testing"})
+		assert.Nil(t, err)
+		w := httptest.NewRecorder()
+		user := models.User{Username: "tester", Password: "testing"}
+		payload, err := json.Marshal(&user)
+		assert.Nil(t, err)
+		req, err := http.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(payload))
+		assert.Nil(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		body, err := io.ReadAll(w.Result().Body)
+		assert.Nil(t, err)
+		assert.Contains(t, string(body), "user exists")
+	})
+	t.Run("new", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		user := models.User{Username: "tester3", Password: ""}
+		payload, err := json.Marshal(&user)
+		assert.Nil(t, err)
+		req, err := http.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(payload))
+		assert.Nil(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		body, err := io.ReadAll(w.Result().Body)
+		assert.Nil(t, err)
+		assert.Contains(t, string(body), "password cannot be blank")
+	})
+}
+
 func TestAdminLogin(t *testing.T) {
-	router := setupRouter()
-	w := httptest.NewRecorder()
 	data := struct {
 		Username string
 		Password string
@@ -45,7 +95,6 @@ func TestNonAdminLogin(t *testing.T) {
 	deleteAllUsers()
 	err := createTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
 	assert.Nil(t, err)
-	router := setupRouter()
 	w := httptest.NewRecorder()
 	data := models.User{
 		Username: "tester",
@@ -63,7 +112,6 @@ func TestNonAdminLogin(t *testing.T) {
 
 func TestBadLogin(t *testing.T) {
 	t.Run("bad pass", func(t *testing.T) {
-		router := setupRouter()
 		w := httptest.NewRecorder()
 		data := struct {
 			Username string
@@ -82,7 +130,6 @@ func TestBadLogin(t *testing.T) {
 		assert.Contains(t, string(response), "invalid user")
 	})
 	t.Run("invalid data", func(t *testing.T) {
-		router := setupRouter()
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/login", nil)
 		router.ServeHTTP(w, req)
@@ -90,7 +137,6 @@ func TestBadLogin(t *testing.T) {
 		assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
 	})
 	t.Run("invalid user", func(t *testing.T) {
-		router := setupRouter()
 		w := httptest.NewRecorder()
 		data := models.User{Username: "nosuchuser", Password: "testing"}
 		payload, _ := json.Marshal(data)
@@ -105,7 +151,6 @@ func TestBadLogin(t *testing.T) {
 }
 
 func TestLogout(t *testing.T) {
-	router := setupRouter()
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/logout", nil)
 	router.ServeHTTP(w, req)
@@ -114,19 +159,20 @@ func TestLogout(t *testing.T) {
 }
 
 func TestGetAllUsers(t *testing.T) {
-	cookie := testLogin(models.User{Username: "admin", Password: "password"})
-	router := setupRouter()
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodGet, "/users", nil)
-	req.AddCookie(cookie)
-	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
-	body, _ := io.ReadAll(w.Result().Body)
-	users := []models.User{}
-	json.Unmarshal(body, &users)
-	for _, user := range users {
-		assert.Equal(t, "", user.Password)
-	}
+	t.Run("admin", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/users", nil)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		body, _ := io.ReadAll(w.Result().Body)
+		users := []models.User{}
+		json.Unmarshal(body, &users)
+		for _, user := range users {
+			assert.Equal(t, "", user.Password)
+		}
+	})
 }
 
 func TestDeleteUser(t *testing.T) {
@@ -138,7 +184,6 @@ func TestDeleteUser(t *testing.T) {
 	t.Run("non-admin delete", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodDelete, "/users/tester2", nil)
 		req.AddCookie(cookie)
@@ -151,7 +196,6 @@ func TestDeleteUser(t *testing.T) {
 	t.Run("admin delete", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodDelete, "/users/tester", nil)
 		req.AddCookie(cookie)
@@ -161,7 +205,6 @@ func TestDeleteUser(t *testing.T) {
 	t.Run("delete non-existent user", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodDelete, "/users/tester", nil)
 		req.AddCookie(cookie)
@@ -178,10 +221,44 @@ func TestEditUser(t *testing.T) {
 	assert.Nil(t, err)
 	err = createTestUser(models.User{Username: "tester2", Password: "testing", IsAdmin: false})
 	assert.Nil(t, err)
+
+	t.Run("adminGetUser", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "admin", Password: "password"})
+		assert.NotNil(t, cookie)
+		req, err := http.NewRequest(http.MethodGet, "/users/tester", nil)
+		assert.Nil(t, err)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("GetSelf", func(t *testing.T) {
+		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
+		assert.NotNil(t, cookie)
+		req, err := http.NewRequest(http.MethodGet, "/users/tester", nil)
+		assert.Nil(t, err)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("GetOther", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
+		assert.NotNil(t, cookie)
+		req, err := http.NewRequest(http.MethodGet, "/users/tester2", nil)
+		assert.Nil(t, err)
+		req.AddCookie(cookie)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		response, err := io.ReadAll(w.Body)
+		assert.Nil(t, err)
+		assert.Contains(t, string(response), "non-admin cannot edit other users")
+	})
+
 	t.Run("edit other user by non-admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "tester2", Password: "newPassword"})
 		req, _ := http.NewRequest(http.MethodPost, "/users/tester2", bytes.NewBuffer(body))
@@ -195,7 +272,6 @@ func TestEditUser(t *testing.T) {
 	t.Run("edit user by admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "tester2", Password: "newPassword"})
 		req, _ := http.NewRequest(http.MethodPost, "/users/tester2", bytes.NewBuffer(body))
@@ -209,7 +285,7 @@ func TestEditUser(t *testing.T) {
 	t.Run("edit user by self", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "tester", Password: "newPassword"})
 		req, _ := http.NewRequest(http.MethodPost, "/users/tester", bytes.NewBuffer(body))
@@ -223,7 +299,7 @@ func TestEditUser(t *testing.T) {
 	t.Run("incomplete data", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/users/tester", nil)
 		req.AddCookie(cookie)
@@ -235,7 +311,7 @@ func TestEditUser(t *testing.T) {
 	t.Run("user does not exist", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		payload, _ := json.Marshal(models.User{Username: "nosuchuser", Password: "newPassword"})
 		req, _ := http.NewRequest(http.MethodPost, "/users/nosuchuser", bytes.NewBuffer(payload))
@@ -252,7 +328,7 @@ func TestAddUser(t *testing.T) {
 	t.Run("add user by admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "new", Password: "newPassword"})
 		req, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
@@ -271,7 +347,7 @@ func TestAddUser(t *testing.T) {
 		assert.Nil(t, err)
 		cookie := testLogin(models.User{Username: "tester", Password: "newPassword"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "new", Password: "newPassword"})
 		req, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
@@ -285,7 +361,7 @@ func TestAddUser(t *testing.T) {
 	t.Run("empty password", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "emptypass", Password: ""})
 		req, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
@@ -299,7 +375,7 @@ func TestAddUser(t *testing.T) {
 	t.Run("incomplete data", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		//body, _ := json.Marshal(struct{ InvaildData string }{InvaildData: "emptypass"})
 		req, _ := http.NewRequest(http.MethodPost, "/users", nil)
@@ -313,7 +389,7 @@ func TestAddUser(t *testing.T) {
 }
 
 func testLogin(data models.User) *http.Cookie {
-	router := setupRouter()
+
 	w := httptest.NewRecorder()
 	body, _ := json.Marshal(data)
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))

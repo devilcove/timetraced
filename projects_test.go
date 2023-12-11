@@ -21,7 +21,7 @@ func TestAddProject(t *testing.T) {
 	t.Run("new project", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		project := models.Project{
 			Name: "test",
@@ -47,7 +47,7 @@ func TestAddProject(t *testing.T) {
 	t.Run("invalid data", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/projects", nil)
 		req.AddCookie(cookie)
@@ -62,7 +62,7 @@ func TestAddProject(t *testing.T) {
 	t.Run("invalid data2", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		payload, err := json.Marshal(models.Project{
 			Name: "test name",
@@ -82,7 +82,7 @@ func TestAddProject(t *testing.T) {
 		createTestProjects()
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		payload, err := json.Marshal(models.Project{
 			Name: "test",
@@ -108,7 +108,7 @@ func TestGetProjects(t *testing.T) {
 	t.Run("existing project", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "test", Password: "test"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/projects/test", nil)
 		req.AddCookie(cookie)
@@ -125,7 +125,7 @@ func TestGetProjects(t *testing.T) {
 	t.Run("wrong project", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/projects/missing", nil)
 		req.AddCookie(cookie)
@@ -139,7 +139,7 @@ func TestGetProjects(t *testing.T) {
 	t.Run("get all", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/projects", nil)
 		req.AddCookie(cookie)
@@ -156,7 +156,7 @@ func TestGetProjects(t *testing.T) {
 		deleteAllProjects()
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/projects", nil)
 		req.AddCookie(cookie)
@@ -176,7 +176,7 @@ func TestGetStatus(t *testing.T) {
 	createTestUser(models.User{Username: "test", Password: "test", IsAdmin: false})
 	cookie := testLogin(models.User{Username: "test", Password: "test"})
 	assert.NotNil(t, cookie)
-	router := setupRouter()
+
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/projects/status", nil)
 	req.AddCookie(cookie)
@@ -193,7 +193,7 @@ func TestStartStopProject(t *testing.T) {
 	t.Run("non-existent Project", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		assert.NotNil(t, cookie)
-		router := setupRouter()
+
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/projects/junk/start", nil)
 		req.AddCookie(cookie)
