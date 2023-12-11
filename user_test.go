@@ -162,17 +162,14 @@ func TestGetAllUsers(t *testing.T) {
 	t.Run("admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/users", nil)
+		req, err := http.NewRequest(http.MethodGet, "/users", nil)
+		assert.Nil(t, err)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusOK, w.Code)
-		body, _ := io.ReadAll(w.Result().Body)
-		users := []models.User{}
-		err := json.Unmarshal(body, &users)
+		body, err := io.ReadAll(w.Result().Body)
 		assert.Nil(t, err)
-		for _, user := range users {
-			assert.Equal(t, "", user.Password)
-		}
+		assert.Contains(t, string(body), "<td>Admin</td>")
 	})
 }
 
