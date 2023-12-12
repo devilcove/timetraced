@@ -1,6 +1,6 @@
 {{define "config"}}
 <h1>Configuration</h1>
-<form action="/setConfig" method="post">
+<form hx-post="/setConfig" hx-target="#content">
     <p><label>Theme</label>
     <select name="theme">
         <option>indigo</option>

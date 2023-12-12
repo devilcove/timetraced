@@ -1,5 +1,4 @@
 {{define "report"}}
-<!-- [html-validate-disable attribute-allowed-values]-->
 <div class="w3-row">
     <div class="w3-third"><br></div>
     <div class="w3-third">
@@ -49,7 +48,7 @@
     <div class="w3-third"><br></div>
     <div class="w3-third">
         <h1>Edit Record</h1>
-        <form action="/records/{{ .ID }}" method="post">
+        <form hx-post="/records/{{ .ID }}" hx-target="#content">
             <input type="hidden" name="ID" value="{{.ID}}">
             <label>Start</label>
             <input class="w3-input" type="date" name="Start" value='{{.Start.Format "2006-01-02"}}'>

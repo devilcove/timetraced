@@ -38,7 +38,7 @@
                 </tr>
             </table>
             {{ if .Tracking }}
-            <form action="/projects/stop" method="post">
+            <form hx-post="projects/stop" hx-target="#content">
                 <button class="w3-button" type="submit"><i class="fa fa-stopwatch"></i> Stop</button>
             </form>
             {{end}}

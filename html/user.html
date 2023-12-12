@@ -30,7 +30,7 @@
     <div class="w3-third">
         <h1>Edit User</h1>
         <h2>{{.Username}}</h2>
-        <form name="editUser" action="/users/{{.Username}}" method="post" onsubmit="return valPass()">
+        <form name="editUser" hx-post="/users/{{.Username}}" hx-target="#content" onsubmit="return valPass()">
             <label for="password">New Password: </label>
             <input type="password" placeholder="new password" name="Password" required><br>
             <label for="verify">Verify Password: </label>
