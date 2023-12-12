@@ -23,5 +23,5 @@ func setConfig(c *gin.Context) {
 	}
 	models.SetTheme(user, config.Theme)
 	models.SetFont(user, config.Font)
-	displayStatus(c)
+	displayMain(c)
 }

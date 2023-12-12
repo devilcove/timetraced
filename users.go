@@ -124,7 +124,7 @@ func regUser(c *gin.Context) {
 		return
 	}
 	slog.Info("new user added", "user", user.Username)
-	displayStatus(c)
+	displayMain(c)
 }
 
 func addUser(c *gin.Context) {
@@ -198,7 +198,7 @@ func editUser(c *gin.Context) {
 		return
 	}
 	slog.Info("user updated", "user", updatedUser.Username)
-	displayStatus(c)
+	displayMain(c)
 }
 
 func deleteUser(c *gin.Context) {

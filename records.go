@@ -85,5 +85,5 @@ func editRecord(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	displayStatus(c)
+	displayMain(c)
 }
