@@ -1,6 +1,7 @@
 {{define "content"}}
 <!-- [html-validate-disable prefer-tbody]-->
-{{if (eq .DisplayLogin true)}}
+<h1>{{.NeedsLogin}}</h1>
+{{if (eq .NeedsLogin true)}}
 {{template "login" .}}
 {{ else }}
 <div class="w3-container w3-center w3-padding-64" id="content" hx-get="/projects/status" hx-trigger="every 1m">

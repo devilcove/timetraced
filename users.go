@@ -17,7 +17,7 @@ const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 
 func displayLogin(c *gin.Context) {
 	page := populatePage("")
-	page.DisplayLogin = true
+	page.NeedsLogin = true
 	c.HTML(http.StatusOK, "login", page)
 }
 
@@ -45,7 +45,7 @@ func login(c *gin.Context) {
 	user.Password = ""
 	slog.Info("login", "user", user.Username)
 	page := populatePage(user.Username)
-	page.DisplayLogin = false
+	page.NeedsLogin = false
 	projects, err := database.GetAllProjects()
 	if err != nil {
 		slog.Error(err.Error())

@@ -22,10 +22,11 @@ func displayMain(c *gin.Context) {
 	} else {
 		page = populatePage(user.(string))
 	}
-	if loggedIn != nil {
-		page.DisplayLogin = !loggedIn.(bool)
+	if loggedIn == nil {
+		page.NeedsLogin = true
+		slog.Info("setting needs login", "needsLogin", page.NeedsLogin)
 	}
-	slog.Info("displaystatus", "page", loggedIn)
+	slog.Info("displaystatus", "page", page.NeedsLogin)
 	c.HTML(http.StatusOK, "layout", page)
 }
 

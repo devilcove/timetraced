@@ -6,14 +6,14 @@ import (
 )
 
 type Page struct {
-	DisplayLogin bool
-	Version      string
-	Theme        string
-	Font         string
-	Tracking     bool
-	Projects     []string
-	Status       StatusResponse
-	DefaultDate  string
+	NeedsLogin  bool
+	Version     string
+	Theme       string
+	Font        string
+	Tracking    bool
+	Projects    []string
+	Status      StatusResponse
+	DefaultDate string
 }
 
 // var page Page
