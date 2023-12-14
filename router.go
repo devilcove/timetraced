@@ -102,8 +102,9 @@ func auth(c *gin.Context) {
 }
 
 func checkDefaultUser() {
-	user := os.Getenv("user")
-	pass := os.Getenv("pass")
+	user := os.Getenv("USER")
+	pass := os.Getenv("PASS")
+	slog.Info("user from env", "user", user, "pass", pass)
 	users, err := database.GetAllUsers()
 	if err != nil {
 		log.Fatal(err)
