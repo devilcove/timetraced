@@ -49,7 +49,7 @@ func main() {
 	checkDefaultUser()
 	users, err := database.GetAllUsers()
 	if err != nil {
-		slog.Error("get users", "error", err)
+		log.Fatal("get users", err)
 	}
 	for _, user := range users {
 		project := database.GetActiveProject(user.Username)

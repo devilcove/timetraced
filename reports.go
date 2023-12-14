@@ -29,8 +29,6 @@ func getReport(c *gin.Context) {
 		}
 		return
 	}
-	slog.Info("reportRequest", "request", reportRequest)
-
 	dbRequest.Start, err = time.Parse("2006-01-02", reportRequest.Start)
 	if err != nil {
 		processError(c, http.StatusInternalServerError, err.Error())

@@ -16,7 +16,7 @@ func displayMain(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get("user")
 	loggedIn := session.Get("loggedin")
-	slog.Info("displaying status for", "user", user, "loggedIn", loggedIn)
+	slog.Debug("displaying status for", "user", user, "loggedIn", loggedIn)
 	if user == nil {
 		page = populatePage("")
 	} else {
@@ -24,7 +24,6 @@ func displayMain(c *gin.Context) {
 	}
 	if loggedIn == nil {
 		page.NeedsLogin = true
-		slog.Info("setting needs login", "needsLogin", page.NeedsLogin)
 	}
 	slog.Debug("displaystatus", "page", page.NeedsLogin, "refresh", page.Refresh)
 	c.HTML(http.StatusOK, "layout", page)

@@ -43,7 +43,7 @@ func login(c *gin.Context) {
 	session.Options(sessions.Options{MaxAge: SessionAge, Secure: false, SameSite: http.SameSiteLaxMode})
 	_ = session.Save()
 	user.Password = ""
-	slog.Info("login", "user", user.Username)
+	slog.Debug("login", "user", user.Username)
 	page := populatePage(user.Username)
 	page.NeedsLogin = false
 	projects, err := database.GetAllProjects()

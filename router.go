@@ -92,7 +92,7 @@ func auth(c *gin.Context) {
 	session := sessions.Default(c)
 	loggedIn := session.Get("loggedin")
 	if loggedIn == nil {
-		slog.Info("not logged in -- redirect to /")
+		slog.Info("not logged in display login page")
 		page := models.GetPage()
 		page.NeedsLogin = true
 		c.HTML(http.StatusOK, "login", page)
@@ -104,7 +104,6 @@ func auth(c *gin.Context) {
 func checkDefaultUser() {
 	user := os.Getenv("USER")
 	pass := os.Getenv("PASS")
-	slog.Info("user from env", "user", user, "pass", pass)
 	users, err := database.GetAllUsers()
 	if err != nil {
 		log.Fatal(err)

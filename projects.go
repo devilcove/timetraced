@@ -33,7 +33,6 @@ func addProject(c *gin.Context) {
 		processError(c, http.StatusBadRequest, "could not decode request into json "+err.Error())
 		return
 	}
-	slog.Info("addproject1", "project", project)
 	if regexp.MustCompile(`\s+`).MatchString(project.Name) || project.Name == "" {
 		processError(c, http.StatusBadRequest, "invalid project name")
 		return
@@ -50,12 +49,10 @@ func addProject(c *gin.Context) {
 	project.ID = uuid.New()
 	project.Active = true
 	project.Updated = time.Now()
-	slog.Info("add project", "project", project)
 	if err := database.SaveProject(&project); err != nil {
 		processError(c, http.StatusInternalServerError, "error saving project "+err.Error())
 		return
 	}
-	slog.Info("added", "project", project.Name)
 	displayMain(c)
 }
 
