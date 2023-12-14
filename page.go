@@ -26,7 +26,7 @@ func displayMain(c *gin.Context) {
 		page.NeedsLogin = true
 		slog.Info("setting needs login", "needsLogin", page.NeedsLogin)
 	}
-	slog.Info("displaystatus", "page", page.NeedsLogin)
+	slog.Debug("displaystatus", "page", page.NeedsLogin, "refresh", page.Refresh)
 	c.HTML(http.StatusOK, "layout", page)
 }
 

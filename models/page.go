@@ -10,6 +10,7 @@ type Page struct {
 	Version     string
 	Theme       string
 	Font        string
+	Refresh     int
 	Tracking    bool
 	Projects    []string
 	Status      StatusResponse
@@ -24,6 +25,7 @@ func initialize() Page {
 		Version:     "v0.1.0",
 		Theme:       "indigo",
 		Font:        "Roboto",
+		Refresh:     5,
 		DefaultDate: time.Now().Local().Format("2006-01-02"),
 	}
 }
@@ -62,5 +64,14 @@ func SetFont(user, font string) {
 		page = initialize()
 	}
 	page.Font = font
+	pages[user] = page
+}
+
+func SetRefresh(user string, refresh int) {
+	page, ok := pages[user]
+	if !ok {
+		page = initialize()
+	}
+	page.Refresh = refresh
 	pages[user] = page
 }
