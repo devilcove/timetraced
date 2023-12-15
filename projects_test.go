@@ -17,7 +17,7 @@ import (
 
 func TestAddProject(t *testing.T) {
 	deleteAllProjects()
-	err := createTestUser(models.User{Username: "admin", Password: "password"})
+	err := createTestUser(models.User{Username: "admin", Password: "password", IsAdmin: true})
 	assert.Nil(t, err)
 
 	t.Run("new project", func(t *testing.T) {
