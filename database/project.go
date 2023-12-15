@@ -2,6 +2,7 @@ package database
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/devilcove/timetraced/models"
 	"go.etcd.io/bbolt"
@@ -22,6 +23,9 @@ func GetProject(name string) (models.Project, error) {
 	project := models.Project{}
 	if err := db.View(func(tx *bbolt.Tx) error {
 		v := tx.Bucket([]byte(PROJECT_TABLE_NAME)).Get([]byte(name))
+		if v == nil {
+			return errors.New("no such project")
+		}
 		if err := json.Unmarshal(v, &project); err != nil {
 			return err
 		}

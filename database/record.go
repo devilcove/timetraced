@@ -2,6 +2,7 @@ package database
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/devilcove/timetraced/models"
@@ -24,6 +25,9 @@ func GetRecord(id uuid.UUID) (models.Record, error) {
 	record := models.Record{}
 	if err := db.View(func(tx *bbolt.Tx) error {
 		v := tx.Bucket([]byte(RECORDS_TABLE_NAME)).Get([]byte(id.String()))
+		if v == nil {
+			return errors.New("no such record")
+		}
 		if err := json.Unmarshal(v, &record); err != nil {
 			return err
 		}

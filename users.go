@@ -17,7 +17,7 @@ const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 
 func displayLogin(c *gin.Context) {
 	page := populatePage("")
-	page.DisplayLogin = true
+	page.NeedsLogin = true
 	c.HTML(http.StatusOK, "login", page)
 }
 
@@ -43,9 +43,9 @@ func login(c *gin.Context) {
 	session.Options(sessions.Options{MaxAge: SessionAge, Secure: false, SameSite: http.SameSiteLaxMode})
 	_ = session.Save()
 	user.Password = ""
-	slog.Info("login", "user", user.Username)
+	slog.Debug("login", "user", user.Username)
 	page := populatePage(user.Username)
-	page.DisplayLogin = false
+	page.NeedsLogin = false
 	projects, err := database.GetAllProjects()
 	if err != nil {
 		slog.Error(err.Error())
@@ -124,7 +124,7 @@ func regUser(c *gin.Context) {
 		return
 	}
 	slog.Info("new user added", "user", user.Username)
-	displayStatus(c)
+	displayMain(c)
 }
 
 func addUser(c *gin.Context) {
@@ -198,7 +198,7 @@ func editUser(c *gin.Context) {
 		return
 	}
 	slog.Info("user updated", "user", updatedUser.Username)
-	displayStatus(c)
+	displayMain(c)
 }
 
 func deleteUser(c *gin.Context) {

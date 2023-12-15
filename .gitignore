@@ -5,3 +5,4 @@ timetraced
 timetrace
 coverage.out
 c.out
+experiment/*

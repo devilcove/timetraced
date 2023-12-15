@@ -23,7 +23,7 @@ func GetUser(name string) (models.User, error) {
 	user := models.User{}
 	if err := db.View(func(tx *bbolt.Tx) error {
 		v := tx.Bucket([]byte(USERS_TABLE_NAME)).Get([]byte(name))
-		if len(v) == 0 {
+		if v == nil {
 			return errors.New("no such user")
 		}
 		if err := json.Unmarshal(v, &user); err != nil {

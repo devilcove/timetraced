@@ -50,10 +50,8 @@ func setupRouter() *gin.Engine {
 	router.POST("/login", login)
 	router.GET("/logout", logout)
 	router.GET("/register", register)
-	router.GET("/", displayStatus)
+	router.GET("/", displayMain)
 	router.POST("/register", regUser)
-	router.GET("/configuration", config)
-	router.POST("/setConfig", setConfig)
 	projects := router.Group("/projects", auth)
 	{
 		projects.GET("", getProjects)
@@ -74,6 +72,11 @@ func setupRouter() *gin.Engine {
 		records.GET("/:id", getRecord)
 		records.POST("/:id", editRecord)
 	}
+	configuration := router.Group("/config", auth)
+	{
+		configuration.GET("/", config)
+		configuration.POST("/", setConfig)
+	}
 	return router
 }
 
@@ -89,20 +92,18 @@ func auth(c *gin.Context) {
 	session := sessions.Default(c)
 	loggedIn := session.Get("loggedin")
 	if loggedIn == nil {
-		slog.Info("not logged in -- redirect to /")
+		slog.Info("not logged in display login page")
 		page := models.GetPage()
-		page.DisplayLogin = true
-		location := `{"path":"/", "target":"#content")`
-		c.Writer.Header().Set("HX-Location", location)
-		c.HTML(http.StatusOK, "layout", page)
+		page.NeedsLogin = true
+		c.HTML(http.StatusOK, "login", page)
 		c.Abort()
 		return
 	}
 }
 
 func checkDefaultUser() {
-	user := os.Getenv("user")
-	pass := os.Getenv("pass")
+	user := os.Getenv("USER")
+	pass := os.Getenv("PASS")
 	users, err := database.GetAllUsers()
 	if err != nil {
 		log.Fatal(err)

@@ -11,22 +11,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func displayStatus(c *gin.Context) {
+func displayMain(c *gin.Context) {
 	var page models.Page
 	session := sessions.Default(c)
 	user := session.Get("user")
 	loggedIn := session.Get("loggedin")
-	slog.Info("displaying status for", "user", user, "loggedIn", loggedIn)
+	slog.Debug("displaying status for", "user", user, "loggedIn", loggedIn)
 	if user == nil {
 		page = populatePage("")
 	} else {
 		page = populatePage(user.(string))
 	}
-	if loggedIn != nil {
-		page.DisplayLogin = !loggedIn.(bool)
+	if loggedIn == nil {
+		page.NeedsLogin = true
 	}
-	slog.Info("displaystatus", "page", loggedIn)
+	slog.Debug("displaystatus", "page", page.NeedsLogin, "refresh", page.Refresh)
 	c.HTML(http.StatusOK, "layout", page)
+}
+
+func displayStatus(c *gin.Context) {
+	session := sessions.Default(c)
+	user := session.Get("user")
+	loggedIn := session.Get("loggedin")
+	if user == nil || loggedIn == nil {
+		displayMain(c)
+		return
+	}
+	page := populatePage(user.(string))
+	c.HTML(http.StatusOK, "content", page)
 }
 
 func populatePage(user string) models.Page {

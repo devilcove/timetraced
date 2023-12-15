@@ -1,25 +1,9 @@
 {{define "content"}}
 <!-- [html-validate-disable prefer-tbody]-->
-<!-- [html-validate-disable no-dup-id]-->
-{{if (eq .DisplayLogin true)}}
-<div id="content">
-    <div class="w3-container w3-center w3-theme-dark">
-        <h1>Timetrace Login</h1>
-        <!-- <form action="/login" method="post"> -->
-        <form hx-post="/login" hx-target="#content" hx-target-error="#error">
-            <label for="username">Username</label><br>
-            <input type="text" placeholder="enter username" name="username" required><br>
-            <label for="pass">Password</label><br>
-            <input type="password" placeholder="enter password" name="password" required><br>
-            <button type="submit">Login</button>
-        </form>
-        <div class="w3-container w3-padding-32">
-            <a hx-get="/register" hx-target="#content">Don't have an Account? Register</a>
-        </div>
-    </div>
-</div>
+{{if (eq .NeedsLogin true)}}
+{{template "login" .}}
 {{ else }}
-<div class="w3-container w3-center w3-padding-64" id="content">
+<div class="w3-container w3-center w3-padding-64" id="content" hx-get="/projects/status" hx-trigger="every {{.Refresh}}m">
     <div class="w3-row">
         <div class="w3-third"><br></div>
         <div class="w3-third">
@@ -38,7 +22,7 @@
                 </tr>
             </table>
             {{ if .Tracking }}
-            <form hx-post="projects/stop" hx-target="#content">
+            <form hx-post="projects/stop" hx-target="#main">
                 <button class="w3-button" type="submit"><i class="fa fa-stopwatch"></i> Stop</button>
             </form>
             {{end}}
