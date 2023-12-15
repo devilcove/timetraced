@@ -134,7 +134,7 @@ func TestGetProjects(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		body, err := io.ReadAll(w.Result().Body)
 		assert.Nil(t, err)
-		assert.Contains(t, string(body), "could not retrieve project unexpected end of JSON input")
+		assert.Contains(t, string(body), "could not retrieve project no such project")
 	})
 
 	t.Run("get all", func(t *testing.T) {
@@ -186,7 +186,7 @@ func TestGetStatus(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	body, err := io.ReadAll(w.Result().Body)
 	assert.Nil(t, err)
-	assert.Contains(t, string(body), "<title>Time Tracking</title>")
+	assert.Contains(t, string(body), "<b>Current Project: </b>")
 }
 
 func TestStartStopProject(t *testing.T) {
@@ -203,7 +203,7 @@ func TestStartStopProject(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		body, err := io.ReadAll(w.Result().Body)
 		assert.Nil(t, err)
-		assert.Contains(t, string(body), "error reading project unexpected end of JSON input")
+		assert.Contains(t, string(body), "no such project")
 	})
 }
 
