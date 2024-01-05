@@ -98,7 +98,7 @@ func start(c *gin.Context) {
 	}
 	models.TrackingActive(user, project)
 	slog.Info("tracking started", "project", project.Name)
-	displayStatus(c)
+	displayMain(c)
 }
 
 func stopE(u string) error {
@@ -126,5 +126,5 @@ func stop(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	displayStatus(c)
+	displayMain(c)
 }
