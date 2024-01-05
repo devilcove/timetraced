@@ -4,6 +4,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
@@ -57,5 +58,6 @@ func populatePage(user string) models.Page {
 		log.Println("getStatus", err)
 	}
 	page.Status = status
+	page.DefaultDate = time.Now().Local().Format("2006-01-02")
 	return page
 }
