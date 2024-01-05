@@ -64,7 +64,8 @@ func getReport(c *gin.Context) {
 		}
 		var total time.Duration
 		for _, d := range data {
-			total = d.End.Sub(d.Start)
+			recordTotal := d.End.Sub(d.Start)
+			total = total + recordTotal
 			reportRecord.End = d.End
 			reportRecord.Start = d.Start
 			reportRecord.ID = d.ID

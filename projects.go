@@ -38,7 +38,8 @@ func addProject(c *gin.Context) {
 		return
 	}
 	existing, err := database.GetProject(project.Name)
-	if err != nil {
+	if err != nil && err.Error() != "no such project" {
+		slog.Error("add project", "error", err)
 		processError(c, http.StatusInternalServerError, "database error")
 		return
 	}
@@ -53,7 +54,7 @@ func addProject(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, "error saving project "+err.Error())
 		return
 	}
-	displayMain(c)
+	displayStatus(c)
 }
 
 func getProject(c *gin.Context) {
