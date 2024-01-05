@@ -54,7 +54,7 @@ func addProject(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, "error saving project "+err.Error())
 		return
 	}
-	displayMain(c)
+	displayStatus(c)
 }
 
 func getProject(c *gin.Context) {
@@ -98,7 +98,7 @@ func start(c *gin.Context) {
 	}
 	models.TrackingActive(user, project)
 	slog.Info("tracking started", "project", project.Name)
-	displayMain(c)
+	displayStatus(c)
 }
 
 func stopE(u string) error {
@@ -126,5 +126,5 @@ func stop(c *gin.Context) {
 		processError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	displayMain(c)
+	displayStatus(c)
 }
