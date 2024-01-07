@@ -2,6 +2,7 @@ package models
 
 import (
 	"log"
+	"runtime/debug"
 	"time"
 )
 
@@ -22,7 +23,7 @@ var pages map[string]Page
 
 func initialize() Page {
 	return Page{
-		Version:     "v0.1.0",
+		Version:     version(),
 		Theme:       "indigo",
 		Font:        "Roboto",
 		Refresh:     5,
@@ -31,6 +32,18 @@ func initialize() Page {
 }
 func init() {
 	pages = make(map[string]Page)
+}
+
+func version() string {
+	version := "v0.1.0"
+	if info, ok := debug.ReadBuildInfo(); ok {
+		for _, setting := range info.Settings {
+			if setting.Key == "vcs.revision" {
+				return version + " " + setting.Value
+			}
+		}
+	}
+	return version
 }
 
 func GetPage() Page {
