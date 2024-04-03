@@ -3,11 +3,12 @@
 <!-- [html-validate-disable wcag/h32]-->
 
 <div class="w3-bar w3-theme-d5 w3-opacity w3-hover-opacity-off w3-center">
-
     <div class="w3-bar w3-hide-small ">
+        <a class="w3-bar-item w3-button" href="/">
+            <img src="images/timetrace.png" alt="Timetrace" height="60"></a>
         <div id="dropdown" class="w3-bar-item w3-button">
             <details>
-                <summary><i class="fa fa-home w3-xxlarge"></i>Projects</summary>
+                <summary><i class="fa fa-home w3-xxxlarge"></i>Projects</summary>
                 <hr>
                 {{range .Projects }}
                 <button type="button" class="w3-button" 
@@ -24,17 +25,17 @@
             </details>
         </div>
         <button type="button" class="w3-bar-item w3-button" hx-get="/reports" hx-target="#content">
-            <i class="fa fa-file-alt w3-xxlarge"></i>
+            <i class="fa fa-file-alt w3-xxxlarge"></i>
             REPORTS</button>
         <button type="button" class="w3-bar-item w3-button" hx-get="/users" hx-target="#content">
-            <i class="fa fa-user w3-xxlarge"></i>
+            <i class="fa fa-user w3-xxxlarge"></i>
             USERS</button>
         <button type="button" class="w3-bar-item w3-button" hx-get="/config" hx-target="#content">
-            <i class="fa fa-cog w3-xxlarge"></i>
+            <i class="fa fa-cog w3-xxxlarge"></i>
             SETTINGS</button>
         <button type="button" class="w3-bar-item w3-button"
             onclick="document.getElementById('About').style.display='block'">
-            <i class="fa fa-info-circle w3-xxlarge"></i>
+            <i class="fa fa-info-circle w3-xxxlarge"></i>
             ABOUT</button>
     </div>
 

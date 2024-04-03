@@ -5,10 +5,10 @@ go 1.21.1
 require (
 	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.9.1
-	github.com/google/uuid v1.5.0
+	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
-	github.com/stretchr/testify v1.9.0
-	go.etcd.io/bbolt v1.3.8
+	github.com/stretchr/testify v1.8.4
+	go.etcd.io/bbolt v1.3.9
 	golang.org/x/crypto v0.17.0
 )
 
