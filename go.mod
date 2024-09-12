@@ -1,6 +1,7 @@
 module github.com/devilcove/timetraced
 
 go 1.21.1
+toolchain go1.22.5
 
 require (
 	github.com/gin-contrib/sessions v1.0.1
@@ -8,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.9.0
-	go.etcd.io/bbolt v1.3.10
+	go.etcd.io/bbolt v1.3.11
 	golang.org/x/crypto v0.26.0
 )
 
