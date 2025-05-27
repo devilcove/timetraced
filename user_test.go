@@ -22,7 +22,7 @@ var (
 
 func TestMain(m *testing.M) {
 	setLogging()
-	os.Setenv("DB_FILE", "test.db")
+	os.Setenv("DB_FILE", "test.db") //nolint:errcheck
 	_ = database.InitializeDatabase()
 	defer database.Close()
 	checkDefaultUser()
