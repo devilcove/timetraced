@@ -9,7 +9,7 @@ import (
 
 func TestMain(m *testing.M) {
 	//main.setLogging()
-	os.Setenv("DB_FILE", "test.db")
+	os.Setenv("DB_FILE", "test.db") //nolint:errcheck
 	_ = InitializeDatabase()
 	defer Close()
 	//main.checkDefaultUser()
