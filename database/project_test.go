@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Kairum-Labs/should"
 	"github.com/devilcove/timetraced/models"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSaveProject(t *testing.T) {
@@ -16,7 +16,7 @@ func TestSaveProject(t *testing.T) {
 		Active: true,
 	}
 	err := SaveProject(&p)
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 }
 
 func TestGetProject(t *testing.T) {
@@ -26,16 +26,15 @@ func TestGetProject(t *testing.T) {
 		Active:  true,
 		Updated: time.Now(),
 	})
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 	t.Run("exists", func(t *testing.T) {
 		project, err := GetProject("test")
-		assert.Nil(t, err)
-		assert.Equal(t, "test", project.Name)
+		should.BeNil(t, err)
+		should.BeEqual(t, project.Name, "test")
 	})
 	t.Run("missing", func(t *testing.T) {
 		project, err := GetProject("test2")
-		assert.NotNil(t, err)
-		assert.Equal(t, models.Project{}, project)
+		should.NotBeNil(t, err)
+		should.BeEqual(t, project, models.Project{})
 	})
-
 }
