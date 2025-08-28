@@ -9,40 +9,33 @@ import (
 )
 
 const (
-	// table names
-	USERS_TABLE_NAME   = "users"
-	PROJECT_TABLE_NAME = "projects"
-	RECORDS_TABLE_NAME = "records"
-	// sql verbs
-	INIT_DB      = "init"
-	CREATE_TABLE = "createtable"
-	INSERT       = "insert"
-	DELETE       = "delete"
-	DELETE_ALL   = "deleteall"
-	FETCH        = "fetch"
-	CLOSE_DB     = "close"
-	// errors
-	NO_RECORDS = "no results found"
+	// table names.
+	userTableName    = "users"
+	projectTableName = "projects"
+	recordsTableName = "records"
 )
 
 var (
+	// ErrNoResults is returned when a db record does not exist in db.
 	ErrNoResults = errors.New("no results found")
 	db           *bbolt.DB
 )
 
+// InitializeDatabase opens (creates if it does not exist) the db and creates any non-exitent tables.
 func InitializeDatabase() error {
 	var err error
 	file := os.Getenv("DB_FILE")
 	if file == "" {
 		file = "time.db"
 	}
-	db, err = bbolt.Open(file, 0666, &bbolt.Options{Timeout: 1 * time.Second})
+	db, err = bbolt.Open(file, 0o666, &bbolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		return err
 	}
 	return createTables()
 }
 
+// Close closes the db file.
 func Close() {
 	if err := db.Close(); err != nil {
 		panic(err)
@@ -50,13 +43,13 @@ func Close() {
 }
 
 func createTables() error {
-	if err := createTable(USERS_TABLE_NAME); err != nil {
+	if err := createTable(userTableName); err != nil {
 		return err
 	}
-	if err := createTable(PROJECT_TABLE_NAME); err != nil {
+	if err := createTable(projectTableName); err != nil {
 		return err
 	}
-	if err := createTable(RECORDS_TABLE_NAME); err != nil {
+	if err := createTable(recordsTableName); err != nil {
 		return err
 	}
 	return nil
