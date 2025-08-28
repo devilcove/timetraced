@@ -9,186 +9,185 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Kairum-Labs/should"
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAddProject(t *testing.T) {
 	deleteAllProjects()
 	err := createTestUser(models.User{Username: "admin", Password: "password", IsAdmin: true})
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 
 	t.Run("new project", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		project := models.Project{
 			Name: "test",
 		}
 		payload, err := json.Marshal(&project)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		t.Log(string(payload))
 		req, err := http.NewRequest(http.MethodPost, "/projects", bytes.NewBuffer(payload))
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req.AddCookie(cookie)
 		req.Header.Set("Content-Type", "application/json")
 		b, err := io.ReadAll(req.Body)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		t.Log(string(b))
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		t.Log(string(body))
-		assert.Contains(t, string(body), "")
+		should.ContainSubstring(t, string(body), "")
 	})
 
 	t.Run("invalid data", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/projects", nil)
 		req.AddCookie(cookie)
 		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(body), "could not decode request")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(body), "could not decode request")
 	})
 
 	t.Run("invalid data2", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		payload, err := json.Marshal(models.Project{
 			Name: "test name",
 		})
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req, _ := http.NewRequest(http.MethodPost, "/projects", bytes.NewBuffer(payload))
 		req.AddCookie(cookie)
 		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(body), "invalid project name")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(body), "invalid project name")
 	})
 
 	t.Run("project exists", func(t *testing.T) {
 		createTestProjects()
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		payload, err := json.Marshal(models.Project{
 			Name: "test",
 		})
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req, _ := http.NewRequest(http.MethodPost, "/projects", bytes.NewBuffer(payload))
 		req.AddCookie(cookie)
 		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(body), "project exists")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(body), "project exists")
 	})
-
 }
 
 func TestGetProjects(t *testing.T) {
 	deleteAllProjects()
 	createTestProjects()
 	err := createTestUser(models.User{Username: "test", Password: "test", IsAdmin: false})
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 
 	t.Run("existing project", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "test", Password: "test"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/projects/test", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusOK, w.Code)
+		should.BeEqual(t, w.Code, http.StatusOK)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		msg := models.Project{}
 		err = json.Unmarshal(body, &msg)
-		assert.Nil(t, err)
-		assert.Equal(t, "test", msg.Name)
+		should.BeNil(t, err)
+		should.BeEqual(t, msg.Name, "test")
 	})
 
 	t.Run("wrong project", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/projects/missing", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(body), "could not retrieve project no such project")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(body), "could not retrieve project no such project")
 	})
 
 	t.Run("get all", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/projects", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusOK, w.Code)
+		should.BeEqual(t, w.Code, http.StatusOK)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		msg := []models.Project{}
 		err = json.Unmarshal(body, &msg)
-		assert.Nil(t, err)
-		assert.Equal(t, 5, len(msg))
+		should.BeNil(t, err)
+		should.BeEqual(t, len(msg), 5)
 	})
 	t.Run("get all when empty", func(t *testing.T) {
 		deleteAllProjects()
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/projects", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusOK, w.Code)
+		should.BeEqual(t, w.Code, http.StatusOK)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		msg := []models.StatusResponse{}
 		err = json.Unmarshal(body, &msg)
-		assert.Nil(t, err)
-		assert.Equal(t, 0, len(msg))
+		should.BeNil(t, err)
+		should.BeEqual(t, len(msg), 0)
 	})
 }
 
 func TestGetStatus(t *testing.T) {
 	createTestRecords()
 	err := createTestUser(models.User{Username: "test", Password: "test", IsAdmin: false})
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 	cookie := testLogin(models.User{Username: "test", Password: "test"})
-	assert.NotNil(t, cookie)
+	should.NotBeNil(t, cookie)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/projects/status", nil)
 	req.AddCookie(cookie)
 	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
+	should.BeEqual(t, w.Code, http.StatusOK)
 	body, err := io.ReadAll(w.Result().Body)
-	assert.Nil(t, err)
-	assert.Contains(t, string(body), "<b>Current Project: </b>")
+	should.BeNil(t, err)
+	should.ContainSubstring(t, string(body), "<b>Current Project: </b>")
 }
 
 func TestStartStopProject(t *testing.T) {
@@ -196,16 +195,16 @@ func TestStartStopProject(t *testing.T) {
 	createTestProjects()
 	t.Run("non-existent Project", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/projects/junk/start", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		should.BeEqual(t, w.Code, http.StatusInternalServerError)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(body), "no such project")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(body), "no such project")
 	})
 }
 

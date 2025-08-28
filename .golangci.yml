@@ -1,0 +1,51 @@
+version: "2"
+run:
+  timeout: 5m
+linters:
+  default: all
+  disable:
+    - depguard
+    - err113
+    - exhaustruct
+    - forbidigo
+    - forcetypeassert
+    - gochecknoglobals
+    - gochecknoinits
+    - mnd
+    - musttag
+    - nlreturn
+    - noctx
+    - noinlineerr
+    - paralleltest
+    - testpackage
+    - wrapcheck
+    - wsl
+    - wsl_v5
+  settings:
+    gosmopolitan:
+      allow-time-local: true
+    varnamelen:
+      max-distance: 15
+      ignore-decls:
+        - c *gin.Context
+        - db *bbolt.DB
+        - w *httptest.ResponseRecorder
+  exclusions:
+    generated: lax
+    paths:
+      - _test\.go
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

@@ -6,35 +6,34 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/Kairum-Labs/should"
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGetReport(t *testing.T) {
 	deleteAllUsers()
 	deleteAllRecords()
 	err := createTestUser(models.User{Username: "test", Password: "testing"})
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 	cookie := testLogin(models.User{Username: "test", Password: "testing"})
-	assert.NotNil(t, cookie)
+	should.NotBeNil(t, cookie)
 	t.Run("no request", func(t *testing.T) {
-
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/reports", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, string(body), "could not decode request")
+		should.BeNil(t, err)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
+		should.ContainSubstring(t, string(body), "could not decode request")
 	})
 	t.Run("no records", func(t *testing.T) {
-
 		w := httptest.NewRecorder()
 		request := models.ReportRequest{
 			Start:   time.Now().Add(-24 * time.Hour).Format("2006-01-02"),
@@ -42,20 +41,22 @@ func TestGetReport(t *testing.T) {
 			Project: "nilProject",
 		}
 		payload, err := json.Marshal(&request)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req, _ := http.NewRequest(http.MethodPost, "/reports", bytes.NewBuffer(payload))
 		req.AddCookie(cookie)
 		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(w, req)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.NotContains(t, string(body), "<tr>")
+		should.BeNil(t, err)
+		should.BeEqual(t, w.Code, http.StatusOK)
+		// should.NotContainSubstring(t, string(body), "<tr>")
+		if strings.Contains(string(body), "<tr>") {
+			t.Fail()
+		}
 	})
 
 	t.Run("one user/one project", func(t *testing.T) {
 		createTestRecords()
-
 		w := httptest.NewRecorder()
 		data := models.ReportRequest{
 			Start:   time.Now().Add(-24 * time.Hour).Format("2006-01-02"),
@@ -63,15 +64,15 @@ func TestGetReport(t *testing.T) {
 			Project: "timetrace",
 		}
 		payload, err := json.Marshal(data)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req, _ := http.NewRequest(http.MethodPost, "/reports", bytes.NewBuffer(payload))
 		req.AddCookie(cookie)
 		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(w, req)
 		body, _ := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, string(body), "<h2>Project timetrace")
+		should.BeNil(t, err)
+		should.BeEqual(t, w.Code, http.StatusOK)
+		should.ContainSubstring(t, string(body), "<h2>Project timetrace")
 	})
 
 	t.Run("all records", func(t *testing.T) {
@@ -85,17 +86,16 @@ func TestGetReport(t *testing.T) {
 			Project: "",
 		}
 		payload, err := json.Marshal(data)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req, _ := http.NewRequest(http.MethodPost, "/reports", bytes.NewBuffer(payload))
 		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, string(body), "<button hx-get=\"/records")
+		should.BeNil(t, err)
+		should.BeEqual(t, w.Code, http.StatusOK)
+		should.ContainSubstring(t, string(body), "<button hx-get=\"/records")
 	})
-
 }
 
 func createTestRecords() {

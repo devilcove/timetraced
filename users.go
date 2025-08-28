@@ -88,7 +88,7 @@ func logout(c *gin.Context) {
 		}
 	}
 	slog.Info("logout", "user", session.Get("user"))
-	//delete cookie
+	// delete cookie
 	session.Clear()
 	_ = session.Save()
 	c.HTML(http.StatusOK, "login", "")

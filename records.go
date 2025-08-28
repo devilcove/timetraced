@@ -24,10 +24,10 @@ func getStatus(user string) (models.StatusResponse, error) {
 			record.End = time.Now()
 			status.Elapsed = record.Duration()
 		}
-		durations[record.Project] = durations[record.Project] + record.End.Sub(record.Start)
-		status.DailyTotal = status.DailyTotal + record.Duration()
+		durations[record.Project] += record.End.Sub(record.Start)
+		status.DailyTotal += record.Duration()
 		if record.Project == status.Current {
-			status.Total = status.Total + record.Duration()
+			status.Total += record.Duration()
 		}
 	}
 	response.Current = status.Current

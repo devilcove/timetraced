@@ -1,7 +1,8 @@
 package models
 
+// Config represents the user selectable UI options.
 type Config struct {
-	Theme   string `json:"theme" form:"theme"`
-	Font    string `json:"font" form:"font"`
-	Refresh int    `json:"refresh" form:"refresh"`
+	Theme   string `form:"theme"   json:"theme"`
+	Font    string `form:"font"    json:"font"`
+	Refresh int    `form:"refresh" json:"refresh"`
 }

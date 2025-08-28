@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func getReport(c *gin.Context) {
+func getReport(c *gin.Context) { //nolint:cyclop,funlen
 	var err error
 	projectsToQuery := []string{}
 	session := sessions.Default(c)
@@ -65,7 +65,7 @@ func getReport(c *gin.Context) {
 		var total time.Duration
 		for _, d := range data {
 			recordTotal := d.End.Sub(d.Start)
-			total = total + recordTotal
+			total += recordTotal
 			reportRecord.End = d.End
 			reportRecord.Start = d.Start
 			reportRecord.ID = d.ID
@@ -79,7 +79,6 @@ func getReport(c *gin.Context) {
 		}
 	}
 	c.HTML(http.StatusOK, "results", displayRecords)
-
 }
 
 func report(c *gin.Context) {

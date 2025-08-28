@@ -4,15 +4,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/Kairum-Labs/should"
 )
 
 func TestMain(m *testing.M) {
-	//main.setLogging()
-	os.Setenv("DB_FILE", "test.db") //nolint:errcheck
+	// main.setLogging()
+	os.Setenv("DB_FILE", "test.db") //nolint:errcheck,gosec
 	_ = InitializeDatabase()
 	defer Close()
-	//main.checkDefaultUser()
+	// main.checkDefaultUser()
 	os.Exit(m.Run())
 }
 
@@ -23,6 +23,6 @@ func TestCloseDB(t *testing.T) {
 	t.Run("closed", func(t *testing.T) {
 		Close()
 		err := InitializeDatabase()
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 	})
 }
