@@ -70,8 +70,8 @@ func getProject(c *gin.Context) {
 func start(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get("user").(string)
-	p := c.Param("name")
-	project, err := database.GetProject(p)
+	proj := c.Param("name")
+	project, err := database.GetProject(proj)
 	if err != nil {
 		processError(c, http.StatusInternalServerError, "error reading project "+err.Error())
 		return
@@ -88,7 +88,7 @@ func start(c *gin.Context) {
 	}
 	record := models.Record{
 		ID:      uuid.New(),
-		Project: p,
+		Project: proj,
 		User:    user,
 		Start:   time.Now(),
 	}
@@ -101,8 +101,8 @@ func start(c *gin.Context) {
 	displayMain(c)
 }
 
-func stopE(u string) error {
-	records, err := database.GetAllRecordsForUser(u)
+func stopE(user string) error {
+	records, err := database.GetAllRecordsForUser(user)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve records %w", err)
 	}
@@ -114,8 +114,8 @@ func stopE(u string) error {
 			}
 		}
 	}
-	slog.Info("tracking stopped", "project", models.Tracked(u))
-	models.TrackingInactive(u)
+	slog.Info("tracking stopped", "project", models.Tracked(user))
+	models.TrackingInactive(user)
 	return nil
 }
 

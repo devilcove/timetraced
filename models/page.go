@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Page represents the data to for display to user.
 type Page struct {
 	NeedsLogin  bool
 	Version     string
@@ -18,7 +19,6 @@ type Page struct {
 	DefaultDate string
 }
 
-// var page Page
 var pages map[string]Page
 
 func initialize() Page {
@@ -30,6 +30,7 @@ func initialize() Page {
 		DefaultDate: time.Now().Local().Format("2006-01-02"),
 	}
 }
+
 func init() {
 	pages = make(map[string]Page)
 }
@@ -46,10 +47,12 @@ func version() string {
 	return version
 }
 
+// GetPage returns default page data.
 func GetPage() Page {
 	return initialize()
 }
 
+// GetUserPage returns current page for a user.
 func GetUserPage(u string) Page {
 	if u == "" {
 		return initialize()
@@ -62,6 +65,7 @@ func GetUserPage(u string) Page {
 	return pages[u]
 }
 
+// SetTheme sets the page theme for a user.
 func SetTheme(user, theme string) {
 	page, ok := pages[user]
 	if !ok {
@@ -71,6 +75,7 @@ func SetTheme(user, theme string) {
 	pages[user] = page
 }
 
+// SetFont sets the page font for a user.
 func SetFont(user, font string) {
 	page, ok := pages[user]
 	if !ok {
@@ -80,6 +85,7 @@ func SetFont(user, font string) {
 	pages[user] = page
 }
 
+// SetRefresh sets the refresh rate for a user.
 func SetRefresh(user string, refresh int) {
 	page, ok := pages[user]
 	if !ok {

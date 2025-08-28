@@ -18,11 +18,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//go:embed: images/favicon.ico
+//go:embed images/favicon.ico
 var icon embed.FS
 
-func setupRouter() *gin.Engine {
-	//gin.SetMode(gin.ReleaseMode)
+func setupRouter() *gin.Engine { //nolint:funlen
 	secret, ok := os.LookupEnv("SESSION_SECRET")
 	if !ok {
 		secret = "secret"
@@ -34,7 +33,7 @@ func setupRouter() *gin.Engine {
 	router.Static("images", "./images")
 	router.Static("assets", "./assets")
 	router.StaticFS("/favicon.ico", http.FS(icon))
-	//router.SetHTMLTemplate(template.Must(template.New("").Parse("html/*")))
+	// router.SetHTMLTemplate(template.Must(template.New("").Parse("html/*")))
 	_ = router.SetTrustedProxies(nil)
 	router.Use(gin.Recovery(), session)
 	users := router.Group("/users", auth)

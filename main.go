@@ -23,10 +23,9 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
-
-	"log/slog"
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
@@ -49,7 +48,7 @@ func main() {
 	checkDefaultUser()
 	users, err := database.GetAllUsers()
 	if err != nil {
-		log.Fatal("get users", err)
+		log.Fatal("get users", err) //nolint:gocritic
 	}
 	for _, user := range users {
 		project := database.GetActiveProject(user.Username)
@@ -60,15 +59,15 @@ func main() {
 		}
 	}
 	router := setupRouter()
-	//router.Use(sloggin.New(logger))
+	// router.Use(sloggin.New(logger))
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func setLogging() *slog.Logger {
+func setLogging() {
 	logLevel := &slog.LevelVar{}
-	replace := func(groups []string, a slog.Attr) slog.Attr {
+	replace := func(_ []string, a slog.Attr) slog.Attr {
 		if a.Key == slog.SourceKey {
 			source, ok := a.Value.Any().(*slog.Source)
 			if ok {
@@ -78,11 +77,14 @@ func setLogging() *slog.Logger {
 		}
 		return a
 	}
-	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{AddSource: true, ReplaceAttr: replace, Level: logLevel}))
-	//logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{AddSource: true, Level: logLevel}))
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		AddSource:   true,
+		ReplaceAttr: replace,
+		Level:       logLevel,
+	}))
+	// logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{AddSource: true, Level: logLevel}))
 	slog.SetDefault(logger)
 	if os.Getenv("DEBUG") == "true" {
 		logLevel.Set(slog.LevelDebug)
 	}
-	return logger
 }
