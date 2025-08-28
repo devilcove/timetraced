@@ -9,10 +9,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Kairum-Labs/should"
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
 	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -33,45 +33,45 @@ func TestMain(m *testing.M) {
 
 func TestDisplayLogin(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, "/", nil)
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
+	should.BeEqual(t, w.Code, http.StatusOK)
 }
 
 func TestRegister(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, "/register", nil)
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
+	should.BeEqual(t, w.Code, http.StatusOK)
 	t.Run("existing", func(t *testing.T) {
 		err := createTestUser(models.User{Username: "tester", Password: "testing"})
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		w := httptest.NewRecorder()
 		user := models.User{Username: "tester", Password: "testing"}
 		payload, err := json.Marshal(&user)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req, err := http.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(payload))
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(body), "user exists")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(body), "user exists")
 	})
 	t.Run("new", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		user := models.User{Username: "tester3", Password: ""}
 		payload, err := json.Marshal(&user)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req, err := http.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(payload))
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(body), "password cannot be blank")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(body), "password cannot be blank")
 	})
 }
 
@@ -87,14 +87,14 @@ func TestAdminLogin(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.NotNil(t, w.Result().Cookies())
+	should.BeEqual(t, w.Code, http.StatusOK)
+	should.NotBeNil(t, w.Result().Cookies())
 }
 
 func TestNonAdminLogin(t *testing.T) {
 	deleteAllUsers()
 	err := createTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 	w := httptest.NewRecorder()
 	data := models.User{
 		Username: "tester",
@@ -104,10 +104,10 @@ func TestNonAdminLogin(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
 	router.ServeHTTP(w, req)
 	response, err := io.ReadAll(w.Result().Body)
-	assert.Nil(t, err)
-	assert.Contains(t, string(response), "invalid user")
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	assert.NotNil(t, w.Result().Cookies())
+	should.BeNil(t, err)
+	should.ContainSubstring(t, string(response), "invalid user")
+	should.BeEqual(t, w.Code, http.StatusBadRequest)
+	should.NotBeNil(t, w.Result().Cookies())
 }
 
 func TestBadLogin(t *testing.T) {
@@ -123,18 +123,18 @@ func TestBadLogin(t *testing.T) {
 		body, _ := json.Marshal(data)
 		req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
+		should.BeEqual(t, w.Result().Cookies(), []*http.Cookie{})
 		response, err := io.ReadAll(w.Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(response), "invalid user")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(response), "invalid user")
 	})
 	t.Run("invalid data", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/login", nil)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
+		should.BeEqual(t, w.Result().Cookies(), []*http.Cookie{})
 	})
 	t.Run("invalid user", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -142,11 +142,10 @@ func TestBadLogin(t *testing.T) {
 		payload, _ := json.Marshal(data)
 		req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(payload))
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
+		should.BeEqual(t, w.Result().Cookies(), []*http.Cookie{})
 		body, _ := io.ReadAll(w.Result().Body)
-		assert.Contains(t, string(body), "invalid user")
-
+		should.ContainSubstring(t, string(body), "invalid user")
 	})
 }
 
@@ -154,8 +153,8 @@ func TestLogout(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/logout", nil)
 	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, []*http.Cookie{}, w.Result().Cookies())
+	should.BeEqual(t, w.Code, http.StatusOK)
+	should.BeEqual(t, w.Result().Cookies(), []*http.Cookie{})
 }
 
 func TestGetAllUsers(t *testing.T) {
@@ -163,126 +162,127 @@ func TestGetAllUsers(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
 		w := httptest.NewRecorder()
 		req, err := http.NewRequest(http.MethodGet, "/users", nil)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusOK, w.Code)
+		should.BeEqual(t, w.Code, http.StatusOK)
 		body, err := io.ReadAll(w.Result().Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(body), "<td>Admin</td>")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(body), "<td>Admin</td>")
 	})
 }
 
 func TestDeleteUser(t *testing.T) {
 	deleteAllUsers()
 	err := createTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 	err = createTestUser(models.User{Username: "tester2", Password: "testing", IsAdmin: false})
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 	t.Run("non-admin delete", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodDelete, "/users/tester2", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		should.BeEqual(t, w.Code, http.StatusUnauthorized)
 		body, err := io.ReadAll(w.Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(body), "not authorized to delete this user")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(body), "not authorized to delete this user")
 	})
 	t.Run("admin delete", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodDelete, "/users/tester", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusNoContent, w.Code)
+		should.BeEqual(t, w.Code, http.StatusNoContent)
 	})
 	t.Run("delete non-existent user", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodDelete, "/users/tester", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		response, err := io.ReadAll(w.Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(response), "user does not exist")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(response), "user does not exist")
 	})
 }
+
 func TestEditUser(t *testing.T) {
 	deleteAllUsers()
 	err := createTestUser(models.User{Username: "tester", Password: "testing", IsAdmin: false})
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 	err = createTestUser(models.User{Username: "tester2", Password: "testing", IsAdmin: false})
-	assert.Nil(t, err)
+	should.BeNil(t, err)
 
 	t.Run("adminGetUser", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 		req, err := http.NewRequest(http.MethodGet, "/users/tester", nil)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusOK, w.Code)
+		should.BeEqual(t, w.Code, http.StatusOK)
 	})
 
 	t.Run("GetSelf", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 		req, err := http.NewRequest(http.MethodGet, "/users/tester", nil)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusOK, w.Code)
+		should.BeEqual(t, w.Code, http.StatusOK)
 	})
 
 	t.Run("GetOther", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 		req, err := http.NewRequest(http.MethodGet, "/users/tester2", nil)
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		response, err := io.ReadAll(w.Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(response), "non-admin cannot edit other users")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(response), "non-admin cannot edit other users")
 	})
 
 	t.Run("edit other user by non-admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "tester2", Password: "newPassword"})
 		req, _ := http.NewRequest(http.MethodPost, "/users/tester2", bytes.NewBuffer(body))
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		should.BeEqual(t, w.Code, http.StatusUnauthorized)
 		response, err := io.ReadAll(w.Body)
-		assert.Nil(t, err)
-		assert.Contains(t, string(response), "not authorized to edit this user")
+		should.BeNil(t, err)
+		should.ContainSubstring(t, string(response), "not authorized to edit this user")
 	})
 	t.Run("edit user by admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "tester2", Password: "newPassword"})
 		req, _ := http.NewRequest(http.MethodPost, "/users/tester2", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusOK, w.Code)
+		should.BeEqual(t, w.Code, http.StatusOK)
 		cookie = testLogin(models.User{Username: "tester2", Password: "newPassword"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 	})
 	t.Run("edit user by self", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "tester", Password: "testing"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "tester", Password: "newPassword"})
@@ -290,51 +290,51 @@ func TestEditUser(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusOK, w.Code)
+		should.BeEqual(t, w.Code, http.StatusOK)
 		cookie = testLogin(models.User{Username: "tester", Password: "newPassword"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 	})
 	t.Run("incomplete data", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/users/tester", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		body, _ := io.ReadAll(w.Result().Body)
-		assert.Contains(t, string(body), "could not decode request into json")
+		should.ContainSubstring(t, string(body), "could not decode request into json")
 	})
 	t.Run("user does not exist", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		payload, _ := json.Marshal(models.User{Username: "nosuchuser", Password: "newPassword"})
 		req, _ := http.NewRequest(http.MethodPost, "/users/nosuchuser", bytes.NewBuffer(payload))
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		body, _ := io.ReadAll(w.Result().Body)
-		assert.Contains(t, string(body), "user does not exist")
+		should.ContainSubstring(t, string(body), "user does not exist")
 	})
-
 }
+
 func TestAddUser(t *testing.T) {
 	deleteAllUsers()
 	t.Run("add user by admin", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "new", Password: "newPassword"})
 		req, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		if assert.Equal(t, http.StatusNoContent, w.Code) {
+		if w.Code == http.StatusNoContent {
 			cookie = testLogin(models.User{Username: "new", Password: "newPassword"})
-			assert.NotNil(t, cookie)
+			should.NotBeNil(t, cookie)
 		} else {
 			body, _ := io.ReadAll(w.Result().Body)
 			t.Log(w.Code, string(body))
@@ -342,52 +342,50 @@ func TestAddUser(t *testing.T) {
 	})
 	t.Run("add user by non-admin", func(t *testing.T) {
 		err := createTestUser(models.User{Username: "tester", Password: "newPassword"})
-		assert.Nil(t, err)
+		should.BeNil(t, err)
 		cookie := testLogin(models.User{Username: "tester", Password: "newPassword"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "new", Password: "newPassword"})
 		req, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		should.BeEqual(t, w.Code, http.StatusUnauthorized)
 		body, _ = io.ReadAll(w.Body)
-		assert.Contains(t, string(body), "only admins can create new users")
+		should.ContainSubstring(t, string(body), "only admins can create new users")
 	})
 
 	t.Run("empty password", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
 		body, _ := json.Marshal(models.User{Username: "emptypass", Password: ""})
 		req, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		body, _ = io.ReadAll(w.Result().Body)
-		assert.Contains(t, string(body), "username or password cannot be blank")
+		should.ContainSubstring(t, string(body), "username or password cannot be blank")
 	})
 
 	t.Run("incomplete data", func(t *testing.T) {
 		cookie := testLogin(models.User{Username: "admin", Password: "password"})
-		assert.NotNil(t, cookie)
+		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
-		//body, _ := json.Marshal(struct{ InvaildData string }{InvaildData: "emptypass"})
+		// body, _ := json.Marshal(struct{ InvaildData string }{InvaildData: "emptypass"})
 		req, _ := http.NewRequest(http.MethodPost, "/users", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		should.BeEqual(t, w.Code, http.StatusBadRequest)
 		body, _ := io.ReadAll(w.Result().Body)
-		assert.Contains(t, string(body), "could not decode request into json")
+		should.ContainSubstring(t, string(body), "could not decode request into json")
 	})
-
 }
 
 func testLogin(data models.User) *http.Cookie {
-
 	w := httptest.NewRecorder()
 	body, _ := json.Marshal(data)
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
