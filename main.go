@@ -22,33 +22,31 @@ limitations under the License.
 package main
 
 import (
-	"log"
-	"log/slog"
 	"os"
-	"path/filepath"
+	"time"
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
-	"github.com/joho/godotenv"
+	"github.com/mattkasun/tools/logging"
 )
 
 func main() {
-	setLogging()
-	if err := godotenv.Load(); err != nil {
-		slog.Error("read environment", "error", err)
-	}
+	logger := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime))
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
 		port = "8080"
 	}
+
 	if err := database.InitializeDatabase(); err != nil {
-		log.Fatal(err)
+		logger.Error("database init", "err", err)
+		os.Exit(1)
 	}
 	defer database.Close()
 	checkDefaultUser()
 	users, err := database.GetAllUsers()
 	if err != nil {
-		log.Fatal("get users", err) //nolint:gocritic
+		logger.Error("get users", "err", err)
+		os.Exit(1) //nolint:gocritic
 	}
 	for _, user := range users {
 		project := database.GetActiveProject(user.Username)
@@ -59,32 +57,8 @@ func main() {
 		}
 	}
 	router := setupRouter()
-	// router.Use(sloggin.New(logger))
 	if err := router.Run(":" + port); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func setLogging() {
-	logLevel := &slog.LevelVar{}
-	replace := func(_ []string, a slog.Attr) slog.Attr {
-		if a.Key == slog.SourceKey {
-			source, ok := a.Value.Any().(*slog.Source)
-			if ok {
-				source.File = filepath.Base(source.File)
-				source.Function = filepath.Base(source.Function)
-			}
-		}
-		return a
-	}
-	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		AddSource:   true,
-		ReplaceAttr: replace,
-		Level:       logLevel,
-	}))
-	// logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{AddSource: true, Level: logLevel}))
-	slog.SetDefault(logger)
-	if os.Getenv("DEBUG") == "true" {
-		logLevel.Set(slog.LevelDebug)
+		logger.Error("run router", "err", err)
+		os.Exit(1)
 	}
 }

@@ -8,11 +8,13 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/Kairum-Labs/should"
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
 	"github.com/gin-gonic/gin"
+	"github.com/mattkasun/tools/logging"
 )
 
 var (
@@ -21,7 +23,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	setLogging()
+	logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime))
 	os.Setenv("DB_FILE", "test.db") //nolint:errcheck,gosec
 	_ = database.InitializeDatabase()
 	defer database.Close()

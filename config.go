@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func config(c *gin.Context) {
+func configOld(c *gin.Context) {
 	page := models.GetPage()
 	c.HTML(http.StatusOK, "config", page)
 }
