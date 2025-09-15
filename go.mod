@@ -3,7 +3,7 @@ module github.com/devilcove/timetraced
 go 1.24.0
 
 require (
-	github.com/Kairum-Labs/should v0.1.0
+	github.com/Kairum-Labs/should v0.2.0
 	github.com/gin-contrib/sessions v1.0.4
 	github.com/gin-gonic/gin v1.10.1
 	github.com/google/uuid v1.6.0
