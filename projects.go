@@ -9,80 +9,84 @@ import (
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func getProjects(c *gin.Context) {
-	projects, err := database.GetAllProjects()
-	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
-		return
+// func getProjects(w http.ResponseWriter, r *http.Request) {
+// 	projects, err := database.GetAllProjects()
+// 	if err != nil {
+// 		processError(w, http.StatusInternalServerError, err.Error())
+// 		return
+// 	}
+// 	c.JSON(http.StatusOK, projects)
+// }
+
+func displayProjectForm(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "addProject", nil)
+}
+
+func addProject(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		processError(w, http.StatusBadRequest, "invalid data sent")
 	}
-	c.JSON(http.StatusOK, projects)
-}
-
-func displayProjectForm(c *gin.Context) {
-	c.HTML(http.StatusOK, "addProject", "")
-}
-
-func addProject(c *gin.Context) {
-	var project models.Project
-	if err := c.Bind(&project); err != nil {
-		processError(c, http.StatusBadRequest, "could not decode request into json "+err.Error())
-		return
+	project := models.Project{
+		Name: r.FormValue("name"),
 	}
 	if regexp.MustCompile(`\s+`).MatchString(project.Name) || project.Name == "" {
-		processError(c, http.StatusBadRequest, "invalid project name")
+		processError(w, http.StatusBadRequest, "invalid project name")
 		return
 	}
 	existing, err := database.GetProject(project.Name)
 	if err != nil && err.Error() != "no such project" {
 		slog.Error("add project", "error", err)
-		processError(c, http.StatusInternalServerError, "database error")
+		processError(w, http.StatusInternalServerError, "database error")
 		return
 	}
 	if existing.Name == project.Name {
-		processError(c, http.StatusBadRequest, "project exists")
+		processError(w, http.StatusBadRequest, "project exists")
 		return
 	}
 	project.ID = uuid.New()
 	project.Active = true
 	project.Updated = time.Now()
 	if err := database.SaveProject(&project); err != nil {
-		processError(c, http.StatusInternalServerError, "error saving project "+err.Error())
+		processError(w, http.StatusInternalServerError, "error saving project "+err.Error())
 		return
 	}
-	displayStatus(c)
+	displayMain(w, r)
 }
 
-func getProject(c *gin.Context) {
-	p := c.Param("name")
-	project, err := database.GetProject(p)
-	if err != nil {
-		processError(c, http.StatusBadRequest, "could not retrieve project "+err.Error())
+// func getProject(w http.ResponseWriter, r *http.Request) {
+// 	p := r.PathValue("name")
+// 	project, err := database.GetProject(p)
+// 	if err != nil {
+// 		processError(w, http.StatusBadRequest, "could not retrieve project "+err.Error())
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, project)
+// }
+
+func start(w http.ResponseWriter, r *http.Request) {
+	proj := r.PathValue("name")
+	session := sessionData(r)
+	if session == nil {
+		displayMain(w, r)
 		return
 	}
-	c.JSON(http.StatusOK, project)
-}
-
-func start(c *gin.Context) {
-	session := sessions.Default(c)
-	user := session.Get("user").(string)
-	proj := c.Param("name")
+	user := session.User
 	project, err := database.GetProject(proj)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, "error reading project "+err.Error())
+		processError(w, http.StatusInternalServerError, "error reading project "+err.Error())
 		return
 	}
 	if !project.Active {
-		processError(c, http.StatusBadRequest, "project is not active")
+		processError(w, http.StatusBadRequest, "project is not active")
 		return
 	}
 	if models.IsTrackingActive(user) {
 		if err := stopE(user); err != nil {
-			processError(c, http.StatusInternalServerError, err.Error())
+			processError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 	}
@@ -93,12 +97,12 @@ func start(c *gin.Context) {
 		Start:   time.Now(),
 	}
 	if err := database.SaveRecord(&record); err != nil {
-		processError(c, http.StatusInternalServerError, "failed to save record "+err.Error())
+		processError(w, http.StatusInternalServerError, "failed to save record "+err.Error())
 		return
 	}
 	models.TrackingActive(user, project)
 	slog.Info("tracking started", "project", project.Name)
-	displayMain(c)
+	displayMain(w, r)
 }
 
 func stopE(user string) error {
@@ -119,12 +123,12 @@ func stopE(user string) error {
 	return nil
 }
 
-func stop(c *gin.Context) {
-	session := sessions.Default(c)
-	user := session.Get("user").(string)
+func stop(w http.ResponseWriter, r *http.Request) {
+	session := sessionData(r)
+	user := session.User
 	if err := stopE(user); err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	displayMain(c)
+	displayMain(w, r)
 }

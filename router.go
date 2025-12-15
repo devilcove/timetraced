@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto/rand"
 	"embed"
 	"fmt"
+	"html/template"
 	"log"
 	"log/slog"
 	"net/http"
@@ -11,93 +13,91 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/devilcove/mux"
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-gonic/gin"
+	"github.com/gorilla/sessions"
+)
+
+const (
+	sessionBytes = 32
+	cookieAge    = 300
+)
+
+var (
+	store     *sessions.CookieStore
+	templates *template.Template
+	logger    *slog.Logger
 )
 
 //go:embed images/favicon.ico
 var icon embed.FS
 
-func setupRouter() *gin.Engine { //nolint:funlen
-	secret, ok := os.LookupEnv("SESSION_SECRET")
-	if !ok {
-		secret = "secret"
-	}
-	store := cookie.NewStore([]byte(secret))
-	session := sessions.Sessions("time", store)
-	router := gin.Default()
-	router.LoadHTMLGlob("html/*.html")
-	router.Static("images", "./images")
-	router.Static("assets", "./assets")
-	router.StaticFS("/favicon.ico", http.FS(icon))
+func setupRouter(l *slog.Logger) *mux.Router { //nolint:funlen
+	store = sessions.NewCookieStore(randBytes(sessionBytes))
+	store.MaxAge(cookieAge)
+	store.Options.HttpOnly = true
+	store.Options.SameSite = http.SameSiteStrictMode
+
+	router := mux.NewRouter(l, mux.Logger)
+	logger = l
+
+	// router.LoadHTMLGlob("html/*.html")
+	router.Static("/images/", "./images")
+	router.Static("/assets/", "./assets")
+	router.ServeFile("/favicon.ico", "images/favicon.ico")
+	templates = template.Must(template.ParseGlob("html/*"))
+	// templates.Lookup("about").Execute(os.Stdout, nil)
 	// router.SetHTMLTemplate(template.Must(template.New("").Parse("html/*")))
-	_ = router.SetTrustedProxies(nil)
-	router.Use(gin.Recovery(), session)
+	// _ = router.SetTrustedProxies(nil)
+	// router.Use(gin.Recovery(), session)
 	users := router.Group("/users", auth)
-	{
-		users.GET("", getUsers)
-		users.GET("current", getUser)
-		users.POST("", addUser)
-		users.POST(":name", editUser)
-		users.DELETE(":name", deleteUser)
-		users.GET(":name", getUser)
-	}
-	router.GET("/login", displayLogin)
-	router.POST("/login", login)
-	router.GET("/logout", logout)
-	router.GET("/register", register)
-	router.GET("/", displayMain)
-	router.POST("/register", regUser)
+	users.Get("/{$}", getUsers)
+	users.Get("/register/", register)
+	users.Post("/register/", registerUser)
+	//users.Get("current", getUser)
+	// 	users.Post("", addUser)
+	users.Post("/{name}", editUser)
+	users.Delete("/{name}", deleteUser)
+	users.Get("/{name}", getUser)
+	// }
+	// router.Get("/login", displayLogin)
+	router.Post("/login", login)
+	router.Get("/logout/", logout)
+	router.Get("/{$}", displayMain)
+	// router.Post("/register", regUser)
 	projects := router.Group("/projects", auth)
-	{
-		projects.GET("", getProjects)
-		projects.GET("/add", displayProjectForm)
-		projects.POST("", addProject)
-		projects.GET("/:name", getProject)
-		projects.POST("/:name/start", start)
-		projects.POST("/stop", stop)
-		projects.GET("/status", displayStatus)
-	}
+	//projects.Get("/{$}", getProjects)
+	projects.Get("/add/", displayProjectForm)
+	projects.Post("/{$}", addProject)
+	// 	projects.Get("/:name", getProject)
+	projects.Post("/stop/", stop)
+	projects.Post("/start/{name}", start)
+	// 	projects.Get("/status", displayStatus)
+	// }
 	reports := router.Group("/reports", auth)
-	{
-		reports.GET("", report)
-		reports.POST("", getReport)
-	}
+	// {
+	reports.Get("/{$}", report)
+	reports.Post("/{$}", getReport)
+	// }
 	records := router.Group("records", auth)
-	{
-		records.GET("/:id", getRecord)
-		records.POST("/:id", editRecord)
-	}
+	// {
+	records.Get("/{id}", getRecord)
+	records.Post("/{id}", editRecord)
+	// }
 	configuration := router.Group("/config", auth)
-	{
-		configuration.GET("/", config)
-		configuration.POST("/", setConfig)
-	}
+	// {
+	configuration.Get("/{$}", configOld)
+	configuration.Post("/{$}", setConfig)
+	// }
 	return router
 }
 
-func processError(c *gin.Context, status int, message string) {
+func processError(w http.ResponseWriter, status int, message string) {
 	pc, fn, line, _ := runtime.Caller(1)
 	source := fmt.Sprintf("%s[%s:%d]", runtime.FuncForPC(pc).Name(), filepath.Base(fn), line)
 	slog.Error(message, "status", status, "source", source)
-	c.HTML(status, "error", message)
-	c.Abort()
-}
-
-func auth(c *gin.Context) {
-	session := sessions.Default(c)
-	loggedIn := session.Get("loggedin")
-	if loggedIn == nil {
-		slog.Info("not logged in display login page")
-		page := models.GetPage()
-		page.NeedsLogin = true
-		c.HTML(http.StatusOK, "login", page)
-		c.Abort()
-		return
-	}
+	http.Error(w, message, status)
 }
 
 func checkDefaultUser() {
@@ -107,8 +107,8 @@ func checkDefaultUser() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if len(users) > 1 {
-		slog.Debug("user exists")
+	if len(users) > 0 {
+		slog.Debug("user exists", "user", users[0].Username)
 		return
 	}
 	if user == "" {
@@ -127,5 +127,14 @@ func checkDefaultUser() {
 		IsAdmin:  true,
 		Updated:  time.Now(),
 	})
-	slog.Info("default user created")
+	slog.Info("default user created", "user", user)
+}
+
+func randBytes(l int) []byte {
+	bytes := make([]byte, l)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
+	return bytes
 }

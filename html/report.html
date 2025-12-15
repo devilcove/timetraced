@@ -3,7 +3,7 @@
     <div class="w3-third"><br></div>
     <div class="w3-third">
         <h1>Reports</h1>
-        <form class="w3-container" hx-post="/reports" hx-target="#content">
+        <form class="w3-container" hx-post="/reports/" hx-target="#content">
             <p><label>Start Date</label></p>
             <p><input type="date" name="start" value="{{.DefaultDate}}" required></p>
             <p><label>End Date</label></p>
@@ -38,7 +38,8 @@
         {{end}}
         <h2>{{.Total}}</h2>
         {{end}}
-        <button class="w3-button w3-theme-dark w3-padding large" hx-get="/" hx-target="#main" type="button">Close</button>
+        <button class="w3-button w3-theme-dark w3-padding large" hx-get="/" hx-target="#main"
+            type="button">Close</button>
     </div>
 </div>
 {{end}}

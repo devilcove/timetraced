@@ -11,24 +11,24 @@ import (
 	"time"
 
 	"github.com/Kairum-Labs/should"
+	"github.com/devilcove/mux"
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
-	"github.com/gin-gonic/gin"
 	"github.com/mattkasun/tools/logging"
 )
 
 var (
-	router *gin.Engine
+	router *mux.Router
 	w      *httptest.ResponseRecorder
 )
 
 func TestMain(m *testing.M) {
-	logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime))
+	log := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime))
 	os.Setenv("DB_FILE", "test.db") //nolint:errcheck,gosec
 	_ = database.InitializeDatabase()
 	defer database.Close()
 	checkDefaultUser()
-	router = setupRouter()
+	router = setupRouter(log.Logger)
 	w = httptest.NewRecorder()
 	os.Exit(m.Run())
 }

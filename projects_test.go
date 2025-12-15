@@ -198,7 +198,7 @@ func TestStartStopProject(t *testing.T) {
 		should.NotBeNil(t, cookie)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodPost, "/projects/junk/start", nil)
+		req, _ := http.NewRequest(http.MethodPost, "/projects/start/junk", nil)
 		req.AddCookie(cookie)
 		router.ServeHTTP(w, req)
 		should.BeEqual(t, w.Code, http.StatusInternalServerError)

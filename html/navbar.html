@@ -11,17 +11,14 @@
                 <summary><i class="fa fa-home w3-xxxlarge"></i>Projects</summary>
                 <hr>
                 {{range .Projects }}
-                <button type="button" class="w3-button" 
-                    hx-post="/projects/{{.}}/start"
-                    hx-target="#main">{{.}}
+                <button type="button" class="w3-button" hx-post="/projects/start/{{.}}" hx-target="#main">{{.}}
                 </button><br>
                 {{end}}
                 <hr>
-                <form hx-get="/projects/add" hx-target="#content">
-                <button type="submit" class="w3-button"
-                    >New Project</button><br>
+                <form hx-get="/projects/add/" hx-target="#content">
+                    <button type="submit" class="w3-button">New Project</button><br>
                 </form>
-                <a href="/logout" class="w3-bar-item w3-button">Logout</a>
+                <a href="/logout/" class="w3-bar-item w3-button">Logout</a>
             </details>
         </div>
         <button type="button" class="w3-bar-item w3-button" hx-get="/reports" hx-target="#content">
@@ -49,11 +46,11 @@
                 <a href="/logout" class="w3-bar-item w3-button">Logout</a>
             </div>
         </div>
-        <button type="button" class="w3-bar-item w3-button" hx-get="/reports" hx-target="#content">
+        <button type="button" class="w3-bar-item w3-button" hx-get="/reports/" hx-target="#content">
             REPORTS</button>
-        <button type="button" class="w3-bar-item w3-button" hx-get="/configuration" hx-target="#content">
+        <button type="button" class="w3-bar-item w3-button" hx-get="/configuration/" hx-target="#content">
             CONFIGURATION</button>
-        <button type="button" class="w3-bar-item w3-button" hx-get="/users" hx-target="#content">
+        <button type="button" class="w3-bar-item w3-button" hx-get="/users/" hx-target="#content">
             USERS</button>
         <button type="button" class="w3-bar-item w3-button"
             onclick="document.getElementById('About').style.display='block'">
@@ -67,11 +64,13 @@
 <div id="addProject">
     <div class="w3-container w3-center w3-theme">
         <h1>Add New Project</h1>
-        <form hx-post="/projects" hx-target="#content" hx-target-error="#error">
+        <form hx-post="/projects/" hx-target="#content" hx-target-error="#error">
             <label for="Name">New Project</label><br>
-            <input type="text" placeholder="new project name" name="Name" required><br>
-            <p><button class="w3-button w3-theme-dark w3-padding large" type="button" hx-get="/" hx-target="#content">Cancel</button>
-            <button class="w3-button w3-theme-dark w3-padding large" type="submit">Submit</button></p>
+            <input type="text" placeholder="new project name" name="name" required><br>
+            <p><button class="w3-button w3-theme-dark w3-padding large" type="button" hx-get="/"
+                    hx-target="#content">Cancel</button>
+                <button class="w3-button w3-theme-dark w3-padding large" type="submit">Submit</button>
+            </p>
         </form>
     </div>
 </div>

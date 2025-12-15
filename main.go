@@ -32,6 +32,7 @@ import (
 
 func main() {
 	logger := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime))
+	//logger := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime), logging.Level(slog.LevelDebug))
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
 		port = "8080"
@@ -56,9 +57,6 @@ func main() {
 			models.TrackingInactive(user.Username)
 		}
 	}
-	router := setupRouter()
-	if err := router.Run(":" + port); err != nil {
-		logger.Error("run router", "err", err)
-		os.Exit(1)
-	}
+	router := setupRouter(logger.Logger)
+	router.Run(":" + port)
 }

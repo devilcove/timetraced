@@ -3,7 +3,8 @@
 {{if (eq .NeedsLogin true)}}
 {{template "login" .}}
 {{ else }}
-<div class="w3-container w3-center w3-padding-64" id="content" hx-get="/projects/status" hx-trigger="every {{.Refresh}}m">
+<div class="w3-container w3-center w3-padding-64" id="content" hx-get="/projects/status"
+    hx-trigger="every {{.Refresh}}m">
     <div class="w3-row">
         <div class="w3-third"><br></div>
         <div class="w3-third">
@@ -22,7 +23,7 @@
                 </tr>
             </table>
             {{ if .Tracking }}
-            <form hx-post="projects/stop" hx-target="#main">
+            <form hx-post="projects/stop/" hx-target="#main">
                 <button class="w3-button" type="submit"><i class="fa fa-stopwatch"></i> Stop</button>
             </form>
             {{end}}

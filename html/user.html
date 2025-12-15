@@ -16,10 +16,14 @@
                 <td>{{.Username}}</td>
                 <td>{{.IsAdmin}}</td>
                 <td><i class="fa fa-edit" hx-get="/users/{{.Username}}" hx-target="#content"></i></td>
-                <td><i class="fa fa-user-slash"></i></td>
+                <td><i class="fa fa-user-slash" hx-delete="/users/{{.Username}}" hx-target="#content"
+                        onsubmit="return confirm('delete user')"></i></td>
             </tr>
             {{end}}
         </table>
+        <div class="w3-center">
+            <p></p>New User &nbsp; <i class="fa fa-user" hx-get="/users/register/" hx-target="#content"></i></p>
+        </div>
     </div>
 </div>
 {{end}}
@@ -29,18 +33,24 @@
     <div class="w3-third"><br></div>
     <div class="w3-third">
         <h1>Edit User</h1>
-        <h2>{{.Username}}</h2>
+        <h2>{{.Username}} {{.IsAdmin}}</h2>
         <form name="editUser" hx-post="/users/{{.Username}}" hx-target="#content" onsubmit="return valPass()">
             <label for="password">New Password: </label>
-            <input type="password" placeholder="new password" name="Password" required><br>
+            <input type="password" placeholder="new password" name="password" required><br>
             <label for="verify">Verify Password: </label>
             <input type="password" placeholder="new password" name="verify" required><br><br>
+            {{ if .AsAdmin }}
+            <label for="admin">Admin</label>
+            <input type="checkbox" name="admin" {{ if .IsAdmin}} checked {{end}}><br><br>
+            <button type="button" hx-get="/users/" hx-target="#content">Cancel</button>
+            {{else}}
             <button type="button" hx-get="/" hx-target="#main">Cancel</button>
+            {{end }}
             <button type="submit">Submit</button>
         </form>
         <script>
             function valPass() {
-                var x = document.forms["editUser"]["Password"].value;
+                var x = document.forms["editUser"]["password"].value;
                 var y = document.forms["editUser"]["verify"].value;
                 console.log(x, y)
                 if (x != y) {

@@ -6,7 +6,6 @@ import (
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
@@ -45,45 +44,50 @@ func getStatus(user string) (models.StatusResponse, error) {
 	return response, nil
 }
 
-func getRecord(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
+func getRecord(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
-		processError(c, http.StatusBadRequest, err.Error())
+		processError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	record, err := database.GetRecord(id)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.HTML(http.StatusOK, "editRecord", record)
+	templates.ExecuteTemplate(w, "editRecord", record)
 }
 
-func editRecord(c *gin.Context) {
-	var err error
-	edit := models.EditRecord{}
-	if err := c.Bind(&edit); err != nil {
-		processError(c, http.StatusBadRequest, err.Error())
-		return
+func editRecord(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		processError(w, http.StatusBadRequest, "invalid data")
+	}
+
+	edit := models.EditRecord{
+		ID:        r.PathValue("id"),
+		Start:     r.FormValue("Start"),
+		StartTime: r.FormValue("StartTime"),
+		End:       r.FormValue("End"),
+		EndTime:   r.FormValue("EndTime"),
 	}
 	record, err := database.GetRecord(uuid.MustParse(edit.ID))
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	record.End, err = time.Parse("2006-01-0215:04", edit.End+edit.EndTime)
 	if err != nil {
-		processError(c, http.StatusBadRequest, err.Error())
+		processError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	record.Start, err = time.Parse("2006-01-0215:04", edit.Start+edit.StartTime)
 	if err != nil {
-		processError(c, http.StatusBadRequest, err.Error())
+		processError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	if err := database.SaveRecord(&record); err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	displayStatus(c)
+	displayStatus(w, r)
 }

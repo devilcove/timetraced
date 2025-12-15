@@ -1,48 +1,43 @@
 package main
 
 import (
-	"io"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
 )
 
-func getReport(c *gin.Context) { //nolint:cyclop,funlen
+func getReport(w http.ResponseWriter, r *http.Request) { //nolint:cyclop,funlen
+	if err := r.ParseForm(); err != nil {
+		processError(w, http.StatusBadRequest, "invalid data")
+	}
 	var err error
 	projectsToQuery := []string{}
-	session := sessions.Default(c)
+	session := sessionData(r)
 	dbRequest := models.DatabaseReportRequest{
-		User: session.Get("user").(string),
+		User: session.User,
 	}
-	reportRequest := models.ReportRequest{}
-	if err := c.Bind(&reportRequest); err != nil {
-		slog.Error("unable to bind", "error", err)
-		processError(c, http.StatusBadRequest, "could not decode request")
-		if c.Request.Body != nil {
-			body, _ := io.ReadAll(c.Request.Body)
-			slog.Info(string(body))
-		}
-		return
+	reportRequest := models.ReportRequest{
+		Start:   r.FormValue("start"),
+		End:     r.FormValue("end"),
+		Project: r.FormValue("project"),
 	}
 	dbRequest.Start, err = time.Parse("2006-01-02", reportRequest.Start)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	dbRequest.End, err = time.Parse("2006-01-02", reportRequest.End)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	if reportRequest.Project == "" {
 		allProjects, err := database.GetAllProjects()
 		if err != nil {
-			processError(c, http.StatusInternalServerError, err.Error())
+			processError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		for _, project := range allProjects {
@@ -59,7 +54,7 @@ func getReport(c *gin.Context) { //nolint:cyclop,funlen
 		dbRequest.Project = project
 		data, err := database.GetReportRecords(dbRequest)
 		if err != nil {
-			processError(c, http.StatusInternalServerError, err.Error())
+			processError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		var total time.Duration
@@ -78,12 +73,16 @@ func getReport(c *gin.Context) { //nolint:cyclop,funlen
 			displayRecords = append(displayRecords, displayRecord)
 		}
 	}
-	c.HTML(http.StatusOK, "results", displayRecords)
+	templates.ExecuteTemplate(w, "results", displayRecords)
 }
 
-func report(c *gin.Context) {
-	session := sessions.Default(c)
-	user := session.Get("user").(string)
+func report(w http.ResponseWriter, r *http.Request) {
+	session := sessionData(r)
+	if session == nil {
+		processError(w, http.StatusBadRequest, "invalid data")
+		return
+	}
+	user := session.User
 	page := populatePage(user)
 	projects, err := database.GetAllProjects()
 	if err != nil {
@@ -93,5 +92,5 @@ func report(c *gin.Context) {
 			page.Projects = append(page.Projects, project.Name)
 		}
 	}
-	c.HTML(http.StatusOK, "report", page)
+	templates.ExecuteTemplate(w, "report", page)
 }

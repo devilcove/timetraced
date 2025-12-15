@@ -1,47 +1,45 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
+	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
 )
 
 const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 
-func displayLogin(c *gin.Context) {
-	page := populatePage("")
-	page.NeedsLogin = true
-	c.HTML(http.StatusOK, "login", page)
-}
+// func displayLogin(w http.ResponseWriter, r *http.Request) {
+// 	page := populatePage("")
+// 	page.NeedsLogin = true
+// 	c.HTML(http.StatusOK, "login", page)
+// }
 
-func login(c *gin.Context) {
-	session := sessions.Default(c)
+func login(w http.ResponseWriter, r *http.Request) {
 	var user models.User
-	if err := c.Bind(&user); err != nil {
-		processError(c, http.StatusBadRequest, "invalid user")
-		slog.Error("bind err", "error", err)
+	if err := r.ParseForm(); err != nil {
+		processError(w, http.StatusBadRequest, "invalid user form")
 		return
 	}
-	slog.Debug("login by", "user", user)
+	user.Username = r.FormValue("username")
+	user.Password = r.FormValue("password")
 	if !validateUser(&user) {
-		session.Clear()
-		_ = session.Save()
-		processError(c, http.StatusBadRequest, "invalid user")
-		slog.Warn("validation error", "user", user.Username)
+		processError(w, http.StatusBadRequest, "invalid user")
+		logger.Debug("validation error", "user", user.Username, "pass", user.Password)
 		return
 	}
-	session.Set("loggedin", true)
-	session.Set("user", user.Username)
-	session.Set("admin", user.IsAdmin)
-	session.Options(sessions.Options{MaxAge: SessionAge, Secure: false, SameSite: http.SameSiteLaxMode})
-	_ = session.Save()
+	session := sessions.NewSession(store, "devilcove-time")
+	session.Values["user"] = user.Username
+	session.Values["loggedIn"] = true
+	session.Values["admin"] = user.IsAdmin
+	session.Options = &sessions.Options{MaxAge: SessionAge, Secure: false, SameSite: http.SameSiteLaxMode}
+	if err := session.Save(r, w); err != nil {
+		logger.Error("session save", "error", err)
+	}
 	user.Password = ""
 	slog.Debug("login", "user", user.Username)
 	page := populatePage(user.Username)
@@ -54,20 +52,21 @@ func login(c *gin.Context) {
 			page.Projects = append(page.Projects, project.Name)
 		}
 	}
-	c.HTML(http.StatusOK, "content", page)
+	templates.ExecuteTemplate(w, "content", page)
 }
 
 func validateUser(visitor *models.User) bool {
 	user, err := database.GetUser(visitor.Username)
 	if err != nil {
-		slog.Error("no such user", "user", visitor.Username, "error", err)
+		logger.Error("no such user", "user", visitor.Username, "error", err)
 		return false
 	}
-	fmt.Println(visitor.Username, user.Username)
+	// fmt.Println(visitor.Username, user.Username)
 	if visitor.Username == user.Username && checkPassword(visitor, &user) {
 		visitor.IsAdmin = user.IsAdmin
 		return true
 	}
+	logger.Error("validation failed")
 	return false
 }
 
@@ -79,158 +78,166 @@ func checkPassword(plain, hash *models.User) bool {
 	return err == nil
 }
 
-func logout(c *gin.Context) {
-	session := sessions.Default(c)
-	user := session.Get("user")
-	if user != nil {
-		if err := stopE(user.(string)); err != nil {
-			slog.Error("failed to stop tracking for user on logout", "error", err)
+func logout(w http.ResponseWriter, r *http.Request) {
+	session := sessionData(r)
+	if session != nil {
+		if err := stopE(session.User); err != nil {
+			logger.Error("failed to stop tracking for user on logout", "error", err)
 		}
+		session.Session.Options.MaxAge = -1
+		session.Session.Save(r, w)
 	}
-	slog.Info("logout", "user", session.Get("user"))
-	// delete cookie
-	session.Clear()
-	_ = session.Save()
-	c.HTML(http.StatusOK, "login", "")
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
-func register(c *gin.Context) {
+func register(w http.ResponseWriter, r *http.Request) {
 	page := models.GetPage()
-	c.HTML(http.StatusOK, "register", page)
+	templates.ExecuteTemplate(w, "register", page)
 }
 
-func regUser(c *gin.Context) {
+func registerUser(w http.ResponseWriter, r *http.Request) {
 	var user models.User
-	var err error
-	if err := c.Bind(&user); err != nil {
-		processError(c, http.StatusBadRequest, err.Error())
+	if err := r.ParseForm(); err != nil {
+		processError(w, http.StatusBadRequest, "invalid user")
 		return
 	}
+	user.Username = r.FormValue("username")
+	user.Password = r.FormValue("password")
 	if _, err := database.GetUser(user.Username); err == nil {
-		processError(c, http.StatusBadRequest, "user exists")
+		processError(w, http.StatusBadRequest, "user exists")
 		return
 	}
 	if user.Password == "" {
-		processError(c, http.StatusBadRequest, "password cannot be blank")
+		processError(w, http.StatusBadRequest, "password cannot be blank")
 		return
 	}
+	var err error
 	user.Password, err = hashPassword(user.Password)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	if err := database.SaveUser(&user); err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	slog.Info("new user added", "user", user.Username)
-	displayStatus(c)
+	http.Redirect(w, r, "/users/", http.StatusFound)
 }
 
-func addUser(c *gin.Context) {
-	var user models.User
-	var err error
-	session := sessions.Default(c)
-	admin := session.Get("admin")
-	if !admin.(bool) {
-		processError(c, http.StatusUnauthorized, "only admins can create new users")
-		return
-	}
-	if err := c.BindJSON(&user); err != nil {
-		processError(c, http.StatusBadRequest, "could not decode request into json")
-		return
-	}
-	if _, err := database.GetUser(user.Username); err == nil {
-		processError(c, http.StatusBadRequest, "user exists")
-		return
-	}
-	if user.Username == "" || user.Password == "" {
-		processError(c, http.StatusBadRequest, "username or password cannot be blank")
-		return
-	}
-	user.Password, err = hashPassword(user.Password)
-	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-	if err := database.SaveUser(&user); err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-	slog.Info("new user added", "user", user.Username)
-	c.JSON(http.StatusNoContent, nil)
-}
+// func addUser(c *gin.Context) {
+// 	var user models.User
+// 	var err error
+// 	session := sessions.Default(c)
+// 	admin := session.Get("admin")
+// 	if !admin.(bool) {
+// 		processError(w, http.StatusUnauthorized, "only admins can create new users")
+// 		return
+// 	}
+// 	if err := c.BindJSON(&user); err != nil {
+// 		processError(w, http.StatusBadRequest, "could not decode request into json")
+// 		return
+// 	}
+// 	if _, err := database.GetUser(user.Username); err == nil {
+// 		processError(w, http.StatusBadRequest, "user exists")
+// 		return
+// 	}
+// 	if user.Username == "" || user.Password == "" {
+// 		processError(w, http.StatusBadRequest, "username or password cannot be blank")
+// 		return
+// 	}
+// 	user.Password, err = hashPassword(user.Password)
+// 	if err != nil {
+// 		processError(w, http.StatusInternalServerError, err.Error())
+// 		return
+// 	}
+// 	if err := database.SaveUser(&user); err != nil {
+// 		processError(w, http.StatusInternalServerError, err.Error())
+// 		return
+// 	}
+// 	slog.Info("new user added", "user", user.Username)
+// 	c.JSON(http.StatusNoContent, nil)
+// }
 
-func editUser(c *gin.Context) {
-	var user struct {
-		Password string
-		Verify   string
-	}
-	var err error
-	username := c.Param("name")
-	session := sessions.Default(c)
-	admin := session.Get("admin")
-	visitor := session.Get("user").(string)
-	if err := c.Bind(&user); err != nil {
-		processError(c, http.StatusBadRequest, "could not decode request into json")
+func editUser(w http.ResponseWriter, r *http.Request) {
+	session := sessionData(r)
+	if session == nil {
+		displayMain(w, r)
 		return
 	}
-	if username != visitor && !admin.(bool) {
-		processError(c, http.StatusUnauthorized, "you are not authorized to edit this user")
+	user := models.User{
+		Username: r.PathValue("name"),
+		Password: r.FormValue("password"),
+	}
+	if r.FormValue("admin") != "" {
+		user.IsAdmin = true
+	}
+	logger.Debug("edit user", "new", user)
+	visitor := session.User
+	if user.Username != visitor && !session.Admin {
+		processError(w, http.StatusUnauthorized, "you are not authorized to edit this user")
 		return
 	}
-	updatedUser, err := database.GetUser(username)
+	updatedUser, err := database.GetUser(user.Username)
 	if err != nil {
-		processError(c, http.StatusBadRequest, "user does not exist")
+		processError(w, http.StatusBadRequest, "user does not exist"+user.Username)
 		return
 	}
 	updatedUser.Password, err = hashPassword(user.Password)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if !admin.(bool) {
+	updatedUser.IsAdmin = user.IsAdmin
+	if !session.Admin {
 		updatedUser.IsAdmin = false
 	}
 	updatedUser.Updated = time.Now()
+	logger.Debug("updating user", "old", user, "new", updatedUser)
 	if err := database.SaveUser(&updatedUser); err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	slog.Info("user updated", "user", updatedUser.Username)
-	displayStatus(c)
+	logger.Info("user updated", "user", updatedUser.Username)
+	http.Redirect(w, r, "/users/", http.StatusFound)
 }
 
-func deleteUser(c *gin.Context) {
-	session := sessions.Default(c)
-	admin := session.Get("admin")
-	user := c.Param("name")
-	if !admin.(bool) {
-		processError(c, http.StatusUnauthorized, "you are not authorized to delete this user")
+func deleteUser(w http.ResponseWriter, r *http.Request) {
+	session := sessionData(r)
+	if session == nil {
+		displayMain(w, r)
+		return
+	}
+	user := r.PathValue("name")
+	if !session.Admin {
+		processError(w, http.StatusUnauthorized, "you are not authorized to delete this user")
 		return
 	}
 	if _, err := database.GetUser(user); err != nil {
-		processError(c, http.StatusBadRequest, "user does not exist")
+		processError(w, http.StatusBadRequest, "user does not exist")
 		return
 	}
 	if err := database.DeleteUser(user); err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	slog.Info("deleted", "user", user)
-	c.JSON(http.StatusNoContent, nil)
+	logger.Info("deleted", "user", user)
+	getUsers(w, r)
 }
 
-func getUsers(c *gin.Context) {
-	session := sessions.Default(c)
-	admin := session.Get("admin").(bool)
-	if !admin {
-		getCurrentUser(c)
+func getUsers(w http.ResponseWriter, r *http.Request) {
+	session := sessionData(r)
+	if session == nil {
+		processError(w, http.StatusBadRequest, "no session")
+		return
+	}
+	if !session.Admin {
+		getCurrentUser(w, r)
 		return
 	}
 	users, err := database.GetAllUsers()
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	returnedUser := []models.User{}
@@ -238,33 +245,43 @@ func getUsers(c *gin.Context) {
 		user.Password = ""
 		returnedUser = append(returnedUser, user)
 	}
-	c.HTML(http.StatusOK, "user", returnedUser)
+	logger.Info("getusers", "users", returnedUser, "session", session)
+	templates.ExecuteTemplate(w, "user", returnedUser)
+	// c.HTML(http.StatusOK, "user", returnedUser)
 }
 
-func getUser(c *gin.Context) {
-	session := sessions.Default(c)
-	editUser := c.Param("name")
-	if !session.Get("admin").(bool) && editUser != session.Get("user").(string) {
-		processError(c, http.StatusBadRequest, "non-admin cannot edit other users")
+func getUser(w http.ResponseWriter, r *http.Request) {
+	session := sessionData(r)
+	if session == nil {
+		processError(w, http.StatusBadRequest, "no session")
+		return
+	}
+	editUser := r.PathValue("name")
+	if !session.Admin && editUser != session.User {
+		processError(w, http.StatusBadRequest, "non-admin cannot edit other users")
 		return
 	}
 	user, err := database.GetUser(editUser)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.HTML(http.StatusOK, "editUser", user)
+	editor := models.Editor{User: user, AsAdmin: session.Admin}
+	templates.ExecuteTemplate(w, "editUser", editor)
 }
 
-func getCurrentUser(c *gin.Context) {
-	session := sessions.Default(c)
-	visitor := session.Get("user").(string)
-	user, err := database.GetUser(visitor)
+func getCurrentUser(w http.ResponseWriter, r *http.Request) {
+	session := sessionData(r)
+	if session == nil {
+		processError(w, http.StatusBadRequest, "session data")
+	}
+	user, err := database.GetUser(session.User)
 	if err != nil {
-		processError(c, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.HTML(http.StatusOK, "editUser", user)
+	editor := models.Editor{User: user, AsAdmin: session.Admin}
+	templates.ExecuteTemplate(w, "editUser", editor)
 }
 
 func hashPassword(password string) (string, error) {
