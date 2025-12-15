@@ -1,15 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rand"
-	"fmt"
 	"html/template"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
-	"runtime"
 	"time"
 
 	"github.com/devilcove/mux"
@@ -68,7 +66,7 @@ func setupRouter(l *slog.Logger) *mux.Router {
 	reports.Get("/{$}", report)
 	reports.Post("/{$}", getReport)
 
-	records := router.Group("records", auth)
+	records := router.Group("/records", auth)
 	records.Get("/{id}", getRecord)
 	records.Post("/{id}", editRecord)
 
@@ -79,9 +77,13 @@ func setupRouter(l *slog.Logger) *mux.Router {
 }
 
 func processError(w http.ResponseWriter, status int, message string) {
-	pc, fn, line, _ := runtime.Caller(1)
-	source := fmt.Sprintf("%s[%s:%d]", runtime.FuncForPC(pc).Name(), filepath.Base(fn), line)
-	slog.Error(message, "status", status, "source", source)
+	buf := bytes.Buffer{}
+	l := log.New(&buf, "ERROR: ", log.Lshortfile)
+	l.Output(2, message)
+	logger.Error(buf.String())
+	//pc, fn, line, _ := runtime.Caller(1)
+	//source := fmt.Sprintf("%s[%s:%d]", runtime.FuncForPC(pc).Name(), filepath.Base(fn), line)
+	//logger.Error(message, "status", status, "source", source)
 	http.Error(w, message, status)
 }
 
@@ -112,7 +114,7 @@ func checkDefaultUser() {
 		IsAdmin:  true,
 		Updated:  time.Now(),
 	})
-	slog.Info("default user created", "user", user)
+	logger.Info("default user created", "user", user, "env user", os.Getenv("USER"), "env pass", os.Getenv("PASS"))
 }
 
 func randBytes(l int) []byte {

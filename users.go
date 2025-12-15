@@ -13,12 +13,6 @@ import (
 
 const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 
-// func displayLogin(w http.ResponseWriter, r *http.Request) {
-// 	page := populatePage("")
-// 	page.NeedsLogin = true
-// 	c.HTML(http.StatusOK, "login", page)
-// }
-
 func login(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	if err := r.ParseForm(); err != nil {
@@ -28,8 +22,8 @@ func login(w http.ResponseWriter, r *http.Request) {
 	user.Username = r.FormValue("username")
 	user.Password = r.FormValue("password")
 	if !validateUser(&user) {
-		processError(w, http.StatusBadRequest, "invalid user")
 		logger.Debug("validation error", "user", user.Username, "pass", user.Password)
+		processError(w, http.StatusBadRequest, "invalid user")
 		return
 	}
 	session := sessions.NewSession(store, "devilcove-time")
@@ -129,49 +123,23 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/users/", http.StatusFound)
 }
 
-// func addUser(c *gin.Context) {
-// 	var user models.User
-// 	var err error
-// 	session := sessions.Default(c)
-// 	admin := session.Get("admin")
-// 	if !admin.(bool) {
-// 		processError(w, http.StatusUnauthorized, "only admins can create new users")
-// 		return
-// 	}
-// 	if err := c.BindJSON(&user); err != nil {
-// 		processError(w, http.StatusBadRequest, "could not decode request into json")
-// 		return
-// 	}
-// 	if _, err := database.GetUser(user.Username); err == nil {
-// 		processError(w, http.StatusBadRequest, "user exists")
-// 		return
-// 	}
-// 	if user.Username == "" || user.Password == "" {
-// 		processError(w, http.StatusBadRequest, "username or password cannot be blank")
-// 		return
-// 	}
-// 	user.Password, err = hashPassword(user.Password)
-// 	if err != nil {
-// 		processError(w, http.StatusInternalServerError, err.Error())
-// 		return
-// 	}
-// 	if err := database.SaveUser(&user); err != nil {
-// 		processError(w, http.StatusInternalServerError, err.Error())
-// 		return
-// 	}
-// 	slog.Info("new user added", "user", user.Username)
-// 	c.JSON(http.StatusNoContent, nil)
-// }
-
 func editUser(w http.ResponseWriter, r *http.Request) {
 	session := sessionData(r)
 	if session == nil {
 		displayMain(w, r)
 		return
 	}
+	if err := r.ParseForm(); err != nil {
+		processError(w, http.StatusBadRequest, "invalid data")
+		return
+	}
 	user := models.User{
 		Username: r.PathValue("name"),
 		Password: r.FormValue("password"),
+	}
+	if user.Password == "" {
+		processError(w, http.StatusBadRequest, "password cannot be blank")
+		return
 	}
 	if r.FormValue("admin") != "" {
 		user.IsAdmin = true

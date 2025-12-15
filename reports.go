@@ -26,7 +26,7 @@ func getReport(w http.ResponseWriter, r *http.Request) { //nolint:cyclop,funlen
 	}
 	dbRequest.Start, err = time.Parse("2006-01-02", reportRequest.Start)
 	if err != nil {
-		processError(w, http.StatusInternalServerError, err.Error())
+		processError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	dbRequest.End, err = time.Parse("2006-01-02", reportRequest.End)

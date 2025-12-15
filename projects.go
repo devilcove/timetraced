@@ -12,15 +12,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// func getProjects(w http.ResponseWriter, r *http.Request) {
-// 	projects, err := database.GetAllProjects()
-// 	if err != nil {
-// 		processError(w, http.StatusInternalServerError, err.Error())
-// 		return
-// 	}
-// 	c.JSON(http.StatusOK, projects)
-// }
-
 func displayProjectForm(w http.ResponseWriter, _ *http.Request) {
 	_ = templates.ExecuteTemplate(w, "addProject", nil)
 }
@@ -38,7 +29,6 @@ func addProject(w http.ResponseWriter, r *http.Request) {
 	}
 	existing, err := database.GetProject(project.Name)
 	if err != nil && err.Error() != "no such project" {
-		slog.Error("add project", "error", err)
 		processError(w, http.StatusInternalServerError, "database error")
 		return
 	}
@@ -56,17 +46,6 @@ func addProject(w http.ResponseWriter, r *http.Request) {
 	displayMain(w, r)
 }
 
-// func getProject(w http.ResponseWriter, r *http.Request) {
-// 	p := r.PathValue("name")
-// 	project, err := database.GetProject(p)
-// 	if err != nil {
-// 		processError(w, http.StatusBadRequest, "could not retrieve project "+err.Error())
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, project)
-// }
-
 func start(w http.ResponseWriter, r *http.Request) {
 	proj := r.PathValue("name")
 	session := sessionData(r)
@@ -77,7 +56,7 @@ func start(w http.ResponseWriter, r *http.Request) {
 	user := session.User
 	project, err := database.GetProject(proj)
 	if err != nil {
-		processError(w, http.StatusInternalServerError, "error reading project "+err.Error())
+		processError(w, http.StatusBadRequest, "error reading project "+err.Error())
 		return
 	}
 	if !project.Active {

@@ -15,17 +15,17 @@ type Session struct {
 }
 
 func auth(next http.Handler) http.Handler {
-	logger.Debug("auth")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session := sessionData(r)
 		if session == nil {
 			logger.Error("nil session data")
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			http.Redirect(w, r, "/login/", http.StatusSeeOther)
 			return
 		}
+		logger.Debug("auth", "session", session)
 		if !session.LoggedIn {
 			logger.Error("not logged in")
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			http.Redirect(w, r, "/login/", http.StatusSeeOther)
 			return
 		}
 		if err := session.Session.Save(r, w); err != nil {
@@ -55,6 +55,5 @@ func sessionData(r *http.Request) *Session {
 		sess.Admin = a
 	}
 	sess.Session = session
-	logger.Debug("session", "data", sess)
 	return sess
 }
