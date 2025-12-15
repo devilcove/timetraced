@@ -21,8 +21,8 @@ import (
 // 	c.JSON(http.StatusOK, projects)
 // }
 
-func displayProjectForm(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "addProject", nil)
+func displayProjectForm(w http.ResponseWriter, _ *http.Request) {
+	_ = templates.ExecuteTemplate(w, "addProject", nil)
 }
 
 func addProject(w http.ResponseWriter, r *http.Request) {

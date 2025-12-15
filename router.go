@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/rand"
-	"embed"
 	"fmt"
 	"html/template"
 	"log"
@@ -30,10 +29,10 @@ var (
 	logger    *slog.Logger
 )
 
-//go:embed images/favicon.ico
-var icon embed.FS
+// //go:embed images/favicon.ico
+// var icon embed.FS
 
-func setupRouter(l *slog.Logger) *mux.Router { //nolint:funlen
+func setupRouter(l *slog.Logger) *mux.Router {
 	store = sessions.NewCookieStore(randBytes(sessionBytes))
 	store.MaxAge(cookieAge)
 	store.Options.HttpOnly = true
@@ -42,54 +41,40 @@ func setupRouter(l *slog.Logger) *mux.Router { //nolint:funlen
 	router := mux.NewRouter(l, mux.Logger)
 	logger = l
 
-	// router.LoadHTMLGlob("html/*.html")
 	router.Static("/images/", "./images")
 	router.Static("/assets/", "./assets")
 	router.ServeFile("/favicon.ico", "images/favicon.ico")
 	templates = template.Must(template.ParseGlob("html/*"))
-	// templates.Lookup("about").Execute(os.Stdout, nil)
-	// router.SetHTMLTemplate(template.Must(template.New("").Parse("html/*")))
-	// _ = router.SetTrustedProxies(nil)
-	// router.Use(gin.Recovery(), session)
+
+	router.Post("/login", login)
+	router.Get("/logout/", logout)
+	router.Get("/{$}", displayMain)
+
 	users := router.Group("/users", auth)
 	users.Get("/{$}", getUsers)
 	users.Get("/register/", register)
 	users.Post("/register/", registerUser)
-	//users.Get("current", getUser)
-	// 	users.Post("", addUser)
 	users.Post("/{name}", editUser)
 	users.Delete("/{name}", deleteUser)
 	users.Get("/{name}", getUser)
-	// }
-	// router.Get("/login", displayLogin)
-	router.Post("/login", login)
-	router.Get("/logout/", logout)
-	router.Get("/{$}", displayMain)
-	// router.Post("/register", regUser)
+
 	projects := router.Group("/projects", auth)
-	//projects.Get("/{$}", getProjects)
 	projects.Get("/add/", displayProjectForm)
 	projects.Post("/{$}", addProject)
-	// 	projects.Get("/:name", getProject)
 	projects.Post("/stop/", stop)
 	projects.Post("/start/{name}", start)
-	// 	projects.Get("/status", displayStatus)
-	// }
+
 	reports := router.Group("/reports", auth)
-	// {
 	reports.Get("/{$}", report)
 	reports.Post("/{$}", getReport)
-	// }
+
 	records := router.Group("records", auth)
-	// {
 	records.Get("/{id}", getRecord)
 	records.Post("/{id}", editRecord)
-	// }
+
 	configuration := router.Group("/config", auth)
-	// {
 	configuration.Get("/{$}", configOld)
 	configuration.Post("/{$}", setConfig)
-	// }
 	return router
 }
 

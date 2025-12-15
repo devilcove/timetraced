@@ -73,7 +73,7 @@ func getReport(w http.ResponseWriter, r *http.Request) { //nolint:cyclop,funlen
 			displayRecords = append(displayRecords, displayRecord)
 		}
 	}
-	templates.ExecuteTemplate(w, "results", displayRecords)
+	_ = templates.ExecuteTemplate(w, "results", displayRecords)
 }
 
 func report(w http.ResponseWriter, r *http.Request) {
@@ -92,5 +92,5 @@ func report(w http.ResponseWriter, r *http.Request) {
 			page.Projects = append(page.Projects, project.Name)
 		}
 	}
-	templates.ExecuteTemplate(w, "report", page)
+	_ = templates.ExecuteTemplate(w, "report", page)
 }

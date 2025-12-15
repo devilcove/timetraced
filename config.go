@@ -7,9 +7,9 @@ import (
 	"github.com/devilcove/timetraced/models"
 )
 
-func configOld(w http.ResponseWriter, r *http.Request) {
+func configOld(w http.ResponseWriter, _ *http.Request) {
 	page := models.GetPage()
-	templates.ExecuteTemplate(w, "config", page)
+	_ = templates.ExecuteTemplate(w, "config", page)
 }
 
 func setConfig(w http.ResponseWriter, r *http.Request) {
@@ -32,6 +32,6 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 	models.SetFont(user, config.Font)
 	models.SetRefresh(user, config.Refresh)
 	page := models.GetUserPage(user)
-	w.Header().Set("HX-Refresh", "true")
-	templates.ExecuteTemplate(w, "layout", page)
+	w.Header().Set("Hx-Refresh", "true")
+	_ = templates.ExecuteTemplate(w, "layout", page)
 }

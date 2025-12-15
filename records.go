@@ -55,7 +55,7 @@ func getRecord(w http.ResponseWriter, r *http.Request) {
 		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	templates.ExecuteTemplate(w, "editRecord", record)
+	_ = templates.ExecuteTemplate(w, "editRecord", record)
 }
 
 func editRecord(w http.ResponseWriter, r *http.Request) {

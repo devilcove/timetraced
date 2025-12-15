@@ -12,21 +12,25 @@ import (
 
 func displayMain(w http.ResponseWriter, r *http.Request) {
 	page := models.GetPage()
-	//session := sessions.Default(c)
 	session := sessionData(r)
 	page.NeedsLogin = true
 	if session != nil {
 		logger.Debug("displaying status for", "user", session.User, "loggedIn", session.LoggedIn)
 		page = populatePage(session.User)
-		//http.Redirect(w, r, "/login", http.StatusSeeOther)
 		if !session.LoggedIn {
 			page.NeedsLogin = true
 		}
 	}
-	logger.Debug("displaystatus", "page", page.NeedsLogin, "refresh", page.Refresh, "theme", page.Theme)
-	templates.ExecuteTemplate(w, "layout", page)
-	//renderTemplate(w, http.StatusOK, "layout", page)
-	//c.HTML(http.StatusOK, "layout", page)
+	logger.Debug(
+		"displaystatus",
+		"page",
+		page.NeedsLogin,
+		"refresh",
+		page.Refresh,
+		"theme",
+		page.Theme,
+	)
+	_ = templates.ExecuteTemplate(w, "layout", page)
 }
 
 func displayStatus(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +42,7 @@ func displayStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	page := populatePage(user)
-	templates.ExecuteTemplate(w, "content", page)
+	_ = templates.ExecuteTemplate(w, "content", page)
 }
 
 func populatePage(user string) models.Page {

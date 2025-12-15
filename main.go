@@ -32,7 +32,7 @@ import (
 
 func main() {
 	logger := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime))
-	//logger := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime), logging.Level(slog.LevelDebug))
+	// logger := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime), logging.Level(slog.LevelDebug))
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
 		port = "8080"

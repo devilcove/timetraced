@@ -36,7 +36,11 @@ func login(w http.ResponseWriter, r *http.Request) {
 	session.Values["user"] = user.Username
 	session.Values["loggedIn"] = true
 	session.Values["admin"] = user.IsAdmin
-	session.Options = &sessions.Options{MaxAge: SessionAge, Secure: false, SameSite: http.SameSiteLaxMode}
+	session.Options = &sessions.Options{
+		MaxAge:   SessionAge,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	}
 	if err := session.Save(r, w); err != nil {
 		logger.Error("session save", "error", err)
 	}
@@ -52,7 +56,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 			page.Projects = append(page.Projects, project.Name)
 		}
 	}
-	templates.ExecuteTemplate(w, "content", page)
+	_ = templates.ExecuteTemplate(w, "content", page)
 }
 
 func validateUser(visitor *models.User) bool {
@@ -85,14 +89,14 @@ func logout(w http.ResponseWriter, r *http.Request) {
 			logger.Error("failed to stop tracking for user on logout", "error", err)
 		}
 		session.Session.Options.MaxAge = -1
-		session.Session.Save(r, w)
+		_ = session.Session.Save(r, w)
 	}
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
-func register(w http.ResponseWriter, r *http.Request) {
+func register(w http.ResponseWriter, _ *http.Request) {
 	page := models.GetPage()
-	templates.ExecuteTemplate(w, "register", page)
+	_ = templates.ExecuteTemplate(w, "register", page)
 }
 
 func registerUser(w http.ResponseWriter, r *http.Request) {
@@ -246,7 +250,7 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 		returnedUser = append(returnedUser, user)
 	}
 	logger.Info("getusers", "users", returnedUser, "session", session)
-	templates.ExecuteTemplate(w, "user", returnedUser)
+	_ = templates.ExecuteTemplate(w, "user", returnedUser)
 	// c.HTML(http.StatusOK, "user", returnedUser)
 }
 
@@ -267,13 +271,14 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	editor := models.Editor{User: user, AsAdmin: session.Admin}
-	templates.ExecuteTemplate(w, "editUser", editor)
+	_ = templates.ExecuteTemplate(w, "editUser", editor)
 }
 
 func getCurrentUser(w http.ResponseWriter, r *http.Request) {
 	session := sessionData(r)
 	if session == nil {
 		processError(w, http.StatusBadRequest, "session data")
+		return
 	}
 	user, err := database.GetUser(session.User)
 	if err != nil {
@@ -281,7 +286,7 @@ func getCurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	editor := models.Editor{User: user, AsAdmin: session.Admin}
-	templates.ExecuteTemplate(w, "editUser", editor)
+	_ = templates.ExecuteTemplate(w, "editUser", editor)
 }
 
 func hashPassword(password string) (string, error) {
