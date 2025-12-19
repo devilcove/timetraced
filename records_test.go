@@ -40,7 +40,6 @@ func TestRecords(t *testing.T) {
 		body, err := io.ReadAll(w.Result().Body)
 		should.BeNil(t, err)
 		should.ContainSubstring(t, string(body), "invalid UUID")
-
 	})
 	t.Run("edit", func(t *testing.T) {
 		start := time.Now().Add(time.Hour - 1)
@@ -78,7 +77,6 @@ func TestRecords(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "/records/notUUID", payload)
 		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		r.AddCookie(adminLogin())
-		//router.ServeHTTP(w, r)
 		should.Panic(t, func() {
 			router.ServeHTTP(w, r)
 		})
@@ -126,7 +124,6 @@ func TestRecords(t *testing.T) {
 		should.BeNil(t, err)
 		should.ContainSubstring(t, string(body), "parsing time")
 	})
-
 }
 
 func formatTimeOnly(t time.Time) string {

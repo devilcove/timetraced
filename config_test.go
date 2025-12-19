@@ -36,6 +36,5 @@ func TestConfig(t *testing.T) {
 		r.AddCookie(adminLogin())
 		router.ServeHTTP(w, r)
 		should.BeEqual(t, w.Result().StatusCode, http.StatusOK)
-
 	})
 }

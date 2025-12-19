@@ -11,7 +11,6 @@ func TestDefaultUser(t *testing.T) {
 	deleteAllUsers()
 	users, err := database.GetAllUsers()
 	should.BeNil(t, err)
-	//should.BeEqual(t, len(users), 0)
 	checkDefaultUser()
 	users, err = database.GetAllUsers()
 	should.BeNil(t, err)

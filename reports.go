@@ -9,7 +9,7 @@ import (
 	"github.com/devilcove/timetraced/models"
 )
 
-func getReport(w http.ResponseWriter, r *http.Request) { //nolint:cyclop,funlen
+func getReport(w http.ResponseWriter, r *http.Request) { //nolint:funlen
 	if err := r.ParseForm(); err != nil {
 		processError(w, http.StatusBadRequest, "invalid data")
 	}

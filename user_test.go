@@ -31,7 +31,6 @@ func TestMain(m *testing.M) {
 	os.Setenv("DB_FILE", "test.db") //nolint:errcheck,gosec
 	_ = database.InitializeDatabase()
 	defer database.Close()
-	//checkDefaultUser()
 	router = setupRouter(log.Logger)
 	w = httptest.NewRecorder()
 	os.Exit(m.Run())

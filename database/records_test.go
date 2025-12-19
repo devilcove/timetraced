@@ -82,7 +82,6 @@ func TestGetRecord(t *testing.T) {
 	record, err := GetRecord(records[0].ID)
 	should.BeNil(t, err)
 	should.BeEqual(t, record.User, records[0].User)
-	//t.Log(record)
 }
 
 func TestGetTodaysRecords(t *testing.T) {
@@ -152,7 +151,7 @@ func createTestRecords() error {
 			Project: "one",
 			User:    "testUser",
 			Start:   time.Now().Add(time.Hour * -1),
-			//End:     time.Now(),
+			// End:     time.Now(),
 		},
 		{
 			ID:      uuid.New(),

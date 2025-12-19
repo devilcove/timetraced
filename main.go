@@ -22,7 +22,6 @@ limitations under the License.
 package main
 
 import (
-	"log/slog"
 	"os"
 	"time"
 
@@ -32,8 +31,7 @@ import (
 )
 
 func main() {
-	// logger := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime))
-	logger := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime), logging.Level(slog.LevelDebug))
+	logger := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime))
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
 		port = "8080"

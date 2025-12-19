@@ -79,11 +79,8 @@ func setupRouter(l *slog.Logger) *mux.Router {
 func processError(w http.ResponseWriter, status int, message string) {
 	buf := bytes.Buffer{}
 	l := log.New(&buf, "ERROR: ", log.Lshortfile)
-	l.Output(2, message)
+	_ = l.Output(2, message)
 	logger.Error(buf.String())
-	//pc, fn, line, _ := runtime.Caller(1)
-	//source := fmt.Sprintf("%s[%s:%d]", runtime.FuncForPC(pc).Name(), filepath.Base(fn), line)
-	//logger.Error(message, "status", status, "source", source)
 	http.Error(w, message, status)
 }
 
@@ -114,7 +111,15 @@ func checkDefaultUser() {
 		IsAdmin:  true,
 		Updated:  time.Now(),
 	})
-	logger.Info("default user created", "user", user, "env user", os.Getenv("USER"), "env pass", os.Getenv("PASS"))
+	logger.Info(
+		"default user created",
+		"user",
+		user,
+		"env user",
+		os.Getenv("USER"),
+		"env pass",
+		os.Getenv("PASS"),
+	)
 }
 
 func randBytes(l int) []byte {

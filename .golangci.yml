@@ -7,11 +7,8 @@ linters:
     - depguard
     - err113
     - exhaustruct
-    - forbidigo
-    - forcetypeassert
     - gochecknoglobals
     - gochecknoinits
-    - lll
     - mnd
     - musttag
     - nlreturn
@@ -23,6 +20,8 @@ linters:
     - wsl
     - wsl_v5
   settings:
+    cyclop:
+      max-complexity: 11
     gosmopolitan:
       allow-time-local: true
     varnamelen:
