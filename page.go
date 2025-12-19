@@ -8,38 +8,41 @@ import (
 
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
 )
 
-func displayMain(c *gin.Context) {
-	var page models.Page
-	session := sessions.Default(c)
-	user := session.Get("user")
-	loggedIn := session.Get("loggedin")
-	slog.Debug("displaying status for", "user", user, "loggedIn", loggedIn)
-	if user == nil {
-		page = populatePage("")
-	} else {
-		page = populatePage(user.(string))
+func displayMain(w http.ResponseWriter, r *http.Request) {
+	page := models.GetPage()
+	session := sessionData(r)
+	page.NeedsLogin = true
+	if session != nil {
+		logger.Debug("displaying status for", "user", session.User, "loggedIn", session.LoggedIn)
+		page = populatePage(session.User)
+		if !session.LoggedIn {
+			page.NeedsLogin = true
+		}
 	}
-	if loggedIn == nil {
-		page.NeedsLogin = true
-	}
-	slog.Debug("displaystatus", "page", page.NeedsLogin, "refresh", page.Refresh)
-	c.HTML(http.StatusOK, "layout", page)
+	logger.Debug(
+		"displaystatus",
+		"page",
+		page.NeedsLogin,
+		"refresh",
+		page.Refresh,
+		"theme",
+		page.Theme,
+	)
+	_ = templates.ExecuteTemplate(w, "layout", page)
 }
 
-func displayStatus(c *gin.Context) {
-	session := sessions.Default(c)
-	user := session.Get("user")
-	loggedIn := session.Get("loggedin")
-	if user == nil || loggedIn == nil {
-		displayMain(c)
+func displayStatus(w http.ResponseWriter, r *http.Request) {
+	session := sessionData(r)
+	user := session.User
+	loggedIn := session.LoggedIn
+	if user == "" || !loggedIn {
+		displayMain(w, r)
 		return
 	}
-	page := populatePage(user.(string))
-	c.HTML(http.StatusOK, "content", page)
+	page := populatePage(user)
+	_ = templates.ExecuteTemplate(w, "content", page)
 }
 
 func populatePage(user string) models.Page {

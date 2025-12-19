@@ -11,3 +11,10 @@ type User struct {
 	IsAdmin  bool
 	Updated  time.Time
 }
+
+// Editor represents the an editor of a user.
+type Editor struct {
+	User
+
+	AsAdmin bool
+}

@@ -3,6 +3,10 @@ package database
 import (
 	"testing"
 	"time"
+
+	"github.com/Kairum-Labs/should"
+	"github.com/devilcove/timetraced/models"
+	"github.com/google/uuid"
 )
 
 func Test_truncateToStart(t *testing.T) {
@@ -55,4 +59,132 @@ func Test_truncateToEnd(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSaveRecord(t *testing.T) {
+	should.BeNil(t, deleteAllRecords())
+	err := SaveRecord(&models.Record{
+		ID:      uuid.New(),
+		Project: "one",
+		User:    "testUser",
+		Start:   time.Now().Add(time.Hour * -1),
+		End:     time.Now(),
+	})
+	should.BeNil(t, err)
+}
+
+func TestGetRecord(t *testing.T) {
+	should.BeNil(t, deleteAllRecords())
+	should.BeNil(t, createTestRecords())
+	records, err := GetAllRecords()
+	should.BeNil(t, err)
+	should.BeEqual(t, len(records), 3)
+	record, err := GetRecord(records[0].ID)
+	should.BeNil(t, err)
+	should.BeEqual(t, record.User, records[0].User)
+}
+
+func TestGetTodaysRecords(t *testing.T) {
+	should.BeNil(t, deleteAllRecords())
+	should.BeNil(t, createTestRecords())
+	t.Run("all", func(t *testing.T) {
+		records, err := GetTodaysRecords()
+		should.BeNil(t, err)
+		should.BeEqual(t, len(records), 3)
+	})
+	t.Run("forUser", func(t *testing.T) {
+		records, err := GetTodaysRecordsForUser("testUser")
+		should.BeNil(t, err)
+		should.BeEqual(t, len(records), 2)
+	})
+}
+
+func TestGetReportRecords(t *testing.T) {
+	should.BeNil(t, deleteAllRecords())
+	should.BeNil(t, createTestRecords())
+	t.Run("today", func(t *testing.T) {
+		records, err := GetReportRecords(models.DatabaseReportRequest{
+			Start:   time.Now(),
+			End:     time.Now(),
+			Project: "one",
+			User:    "testUser",
+		})
+		should.BeNil(t, err)
+		should.BeEqual(t, len(records), 2)
+	})
+	t.Run("yesterday", func(t *testing.T) {
+		records, err := GetReportRecords(models.DatabaseReportRequest{
+			Start:   time.Now().Add(time.Hour * -24 * 7),
+			End:     time.Now().Add(time.Hour * -24),
+			Project: "one",
+			User:    "testUser",
+		})
+		should.BeNil(t, err)
+		should.BeEqual(t, len(records), 0)
+	})
+}
+
+func TestDeleteRecords(t *testing.T) {
+	should.BeNil(t, deleteAllRecords())
+	should.BeNil(t, createTestRecords())
+	records, err := GetAllRecords()
+	should.BeNil(t, err)
+	err = DeleteRecord(records[0].ID)
+	should.BeNil(t, err)
+	remainder, err := GetAllRecords()
+	should.BeNil(t, err)
+	should.BeLessThan(t, len(remainder), len(records))
+}
+
+func TestGetAllRecordsForUser(t *testing.T) {
+	should.BeNil(t, deleteAllRecords())
+	should.BeNil(t, createTestRecords())
+	records, err := GetAllRecordsForUser("testUser")
+	should.BeNil(t, err)
+	should.BeEqual(t, len(records), 2)
+}
+
+func createTestRecords() error {
+	records := []models.Record{
+		{
+			ID:      uuid.New(),
+			Project: "one",
+			User:    "testUser",
+			Start:   time.Now().Add(time.Hour * -1),
+			// End:     time.Now(),
+		},
+		{
+			ID:      uuid.New(),
+			Project: "one",
+			User:    "testUser",
+			Start:   time.Now().Add(time.Hour * -2),
+			End:     time.Now().Add(time.Hour * -1),
+		},
+		{
+			ID:      uuid.New(),
+			Project: "two",
+			User:    "user1",
+			Start:   time.Now().Add(time.Hour * -2),
+			End:     time.Now().Add(time.Hour * -1),
+		},
+	}
+	for _, record := range records {
+		if err := SaveRecord(&record); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func deleteAllRecords() error {
+	records, err := GetAllRecords()
+	if err != nil {
+		return err
+	}
+	for _, record := range records {
+		if err := DeleteRecord(record.ID); err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -1,28 +1,37 @@
 package main
 
 import (
-	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/devilcove/timetraced/models"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
 )
 
-func config(c *gin.Context) {
+func configOld(w http.ResponseWriter, _ *http.Request) {
 	page := models.GetPage()
-	c.HTML(http.StatusOK, "config", page)
+	_ = templates.ExecuteTemplate(w, "config", page)
 }
 
-func setConfig(c *gin.Context) {
-	session := sessions.Default(c)
-	user := session.Get("user").(string)
-	config := models.Config{}
-	if err := c.Bind(&config); err != nil {
-		log.Println("failed to read config", err)
+func setConfig(w http.ResponseWriter, r *http.Request) {
+	session := sessionData(r)
+	user := session.User
+	if err := r.ParseForm(); err != nil {
+		processError(w, http.StatusBadRequest, "invalid data")
+		return
+	}
+	refresh, err := strconv.Atoi(r.FormValue("refresh"))
+	if err != nil {
+		refresh = 5
+	}
+	config := models.Config{
+		Theme:   r.FormValue("theme"),
+		Font:    r.FormValue("font"),
+		Refresh: refresh,
 	}
 	models.SetTheme(user, config.Theme)
 	models.SetFont(user, config.Font)
 	models.SetRefresh(user, config.Refresh)
-	displayMain(c)
+	page := models.GetUserPage(user)
+	w.Header().Set("Hx-Refresh", "true")
+	_ = templates.ExecuteTemplate(w, "layout", page)
 }

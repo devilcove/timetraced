@@ -1,7 +1,7 @@
 package models
 
 import (
-	"log"
+	"log/slog"
 	"runtime/debug"
 	"time"
 )
@@ -60,7 +60,7 @@ func GetUserPage(u string) Page {
 	if page, ok := pages[u]; ok {
 		return page
 	}
-	log.Println("user page not set, using default")
+	slog.Info("user page not set, using default")
 	pages[u] = initialize()
 	return pages[u]
 }
@@ -75,7 +75,7 @@ func SetTheme(user, theme string) {
 	pages[user] = page
 }
 
-// SetFont sets the page font for a user.
+// SetFont sets the page font for a useruser page.
 func SetFont(user, font string) {
 	page, ok := pages[user]
 	if !ok {

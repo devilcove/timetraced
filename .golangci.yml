@@ -7,8 +7,6 @@ linters:
     - depguard
     - err113
     - exhaustruct
-    - forbidigo
-    - forcetypeassert
     - gochecknoglobals
     - gochecknoinits
     - mnd
@@ -22,14 +20,17 @@ linters:
     - wsl
     - wsl_v5
   settings:
+    cyclop:
+      max-complexity: 11
     gosmopolitan:
       allow-time-local: true
     varnamelen:
       max-distance: 15
       ignore-decls:
-        - c *gin.Context
         - db *bbolt.DB
         - w *httptest.ResponseRecorder
+        - w http.ResponseWriter
+        - r *http.Request
   exclusions:
     generated: lax
     paths:
@@ -39,13 +40,14 @@ linters:
       - examples$
 formatters:
   enable:
-    - gci
-    - gofmt
     - gofumpt
-    - goimports
+    - golines
   exclusions:
     generated: lax
     paths:
       - third_party$
       - builtin$
       - examples$
+issues:
+  max-same-issues: 0
+  max-issues-per-linter: 0
