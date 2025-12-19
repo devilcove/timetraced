@@ -51,4 +51,3 @@ formatters:
 issues:
   max-same-issues: 0
   max-issues-per-linter: 0
-  unique-by-line: false
