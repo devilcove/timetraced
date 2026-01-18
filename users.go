@@ -22,7 +22,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	user.Username = r.FormValue("username")
 	user.Password = r.FormValue("password")
 	if !validateUser(&user) {
-		logger.Debug("validation error", "user", user.Username, "pass", user.Password)
+		slog.Debug("validation error", "user", user.Username, "pass", user.Password)
 		processError(w, http.StatusBadRequest, "invalid user")
 		return
 	}
@@ -36,7 +36,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	}
 	if err := session.Save(r, w); err != nil {
-		logger.Error("session save", "error", err)
+		slog.Error("session save", "error", err)
 	}
 	user.Password = ""
 	slog.Debug("login", "user", user.Username)
@@ -56,7 +56,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 func validateUser(visitor *models.User) bool {
 	user, err := database.GetUser(visitor.Username)
 	if err != nil {
-		logger.Error("no such user", "user", visitor.Username, "error", err)
+		slog.Error("no such user", "user", visitor.Username, "error", err)
 		return false
 	}
 	// fmt.Println(visitor.Username, user.Username)
@@ -64,7 +64,7 @@ func validateUser(visitor *models.User) bool {
 		visitor.IsAdmin = user.IsAdmin
 		return true
 	}
-	logger.Error("validation failed")
+	slog.Error("validation failed")
 	return false
 }
 
@@ -80,7 +80,7 @@ func logout(w http.ResponseWriter, r *http.Request) {
 	session := sessionData(r)
 	if session != nil {
 		if err := stopE(session.User); err != nil {
-			logger.Error("failed to stop tracking for user on logout", "error", err)
+			slog.Error("failed to stop tracking for user on logout", "error", err)
 		}
 		session.Session.Options.MaxAge = -1
 		_ = session.Session.Save(r, w)
@@ -144,7 +144,7 @@ func editUser(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("admin") != "" {
 		user.IsAdmin = true
 	}
-	logger.Debug("edit user", "new", user)
+	slog.Debug("edit user", "new", user)
 	visitor := session.User
 	if user.Username != visitor && !session.Admin {
 		processError(w, http.StatusUnauthorized, "you are not authorized to edit this user")
@@ -165,12 +165,12 @@ func editUser(w http.ResponseWriter, r *http.Request) {
 		updatedUser.IsAdmin = false
 	}
 	updatedUser.Updated = time.Now()
-	logger.Debug("updating user", "old", user, "new", updatedUser)
+	slog.Debug("updating user", "old", user, "new", updatedUser)
 	if err := database.SaveUser(&updatedUser); err != nil {
 		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	logger.Info("user updated", "user", updatedUser.Username)
+	slog.Info("user updated", "user", updatedUser.Username)
 	http.Redirect(w, r, "/users/", http.StatusFound)
 }
 
@@ -193,7 +193,7 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	logger.Info("deleted", "user", user)
+	slog.Info("deleted", "user", user)
 	getUsers(w, r)
 }
 
@@ -217,7 +217,7 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 		user.Password = ""
 		returnedUser = append(returnedUser, user)
 	}
-	logger.Info("getusers", "users", returnedUser, "session", session)
+	slog.Info("getusers", "users", returnedUser, "session", session)
 	_ = templates.ExecuteTemplate(w, "user", returnedUser)
 	// c.HTML(http.StatusOK, "user", returnedUser)
 }

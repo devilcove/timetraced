@@ -4,6 +4,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/devilcove/mux v0.2.1 h1:V9Zu+aXxrmiFqligpgdWSmWYZ8XKYYtOwPrsxyKehI4=
 github.com/devilcove/mux v0.2.1/go.mod h1:Q4ysJcjpLwW7rLNTOYSlYVst5OmwFh1uZxJSCPQ34U4=
+github.com/devilcove/mux v0.2.2 h1:d5Uf8DIaIw6mgqclVM5+mUQHkxr7xtCtnOMlZ+4OqH0=
+github.com/devilcove/mux v0.2.2/go.mod h1:Q4ysJcjpLwW7rLNTOYSlYVst5OmwFh1uZxJSCPQ34U4=
 github.com/google/gofuzz v1.2.0 h1:xRy4A+RhZaiKjJ1bPfwQ8sedCA+YS2YcCHW6ec7JMi0=
 github.com/google/gofuzz v1.2.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=

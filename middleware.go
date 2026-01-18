@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -18,18 +19,18 @@ func auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session := sessionData(r)
 		if session == nil {
-			logger.Error("nil session data")
+			slog.Error("nil session data")
 			http.Redirect(w, r, "/login/", http.StatusSeeOther)
 			return
 		}
-		logger.Debug("auth", "session", session)
+		slog.Debug("auth", "session", session)
 		if !session.LoggedIn {
-			logger.Error("not logged in")
+			slog.Error("not logged in")
 			http.Redirect(w, r, "/login/", http.StatusSeeOther)
 			return
 		}
 		if err := session.Session.Save(r, w); err != nil {
-			logger.Error("save session", "error", err)
+			slog.Error("save session", "error", err)
 		}
 		next.ServeHTTP(w, r)
 	})
@@ -39,7 +40,7 @@ func sessionData(r *http.Request) *Session {
 	sess := &Session{}
 	session, err := store.Get(r, "devilcove-time")
 	if err != nil {
-		logger.Error("session err", "error", err)
+		slog.Error("session err", "error", err)
 		return nil
 	}
 	user := session.Values["user"]
