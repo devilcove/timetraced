@@ -36,7 +36,7 @@ func main() {
 	slog.SetDefault(logger.Logger)
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
-		port = "8080"
+		port = "8000"
 	}
 
 	if err := database.InitializeDatabase(); err != nil {
