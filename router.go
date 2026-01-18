@@ -24,20 +24,18 @@ const (
 var (
 	store     *sessions.CookieStore
 	templates *template.Template
-	logger    *slog.Logger
 )
 
 // //go:embed images/favicon.ico
 // var icon embed.FS
 
-func setupRouter(l *slog.Logger) *mux.Router {
+func setupRouter() *mux.Router {
 	store = sessions.NewCookieStore(randBytes(sessionBytes))
 	store.MaxAge(cookieAge)
 	store.Options.HttpOnly = true
 	store.Options.SameSite = http.SameSiteStrictMode
 
-	router := mux.NewRouter(l, mux.Logger)
-	logger = l
+	router := mux.NewRouter(mux.Logger)
 
 	router.Static("/images/", "./images")
 	router.Static("/assets/", "./assets")
@@ -80,7 +78,7 @@ func processError(w http.ResponseWriter, status int, message string) {
 	buf := bytes.Buffer{}
 	l := log.New(&buf, "ERROR: ", log.Lshortfile)
 	_ = l.Output(2, message)
-	logger.Error(buf.String())
+	slog.Error(buf.String())
 	http.Error(w, message, status)
 }
 
@@ -111,7 +109,7 @@ func checkDefaultUser() {
 		IsAdmin:  true,
 		Updated:  time.Now(),
 	})
-	logger.Info(
+	slog.Info(
 		"default user created",
 		"user",
 		user,

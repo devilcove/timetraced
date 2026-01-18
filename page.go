@@ -15,13 +15,13 @@ func displayMain(w http.ResponseWriter, r *http.Request) {
 	session := sessionData(r)
 	page.NeedsLogin = true
 	if session != nil {
-		logger.Debug("displaying status for", "user", session.User, "loggedIn", session.LoggedIn)
+		slog.Debug("displaying status for", "user", session.User, "loggedIn", session.LoggedIn)
 		page = populatePage(session.User)
 		if !session.LoggedIn {
 			page.NeedsLogin = true
 		}
 	}
-	logger.Debug(
+	slog.Debug(
 		"displaystatus",
 		"page",
 		page.NeedsLogin,

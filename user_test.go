@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -26,12 +27,13 @@ var (
 
 func TestMain(m *testing.M) {
 	log := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime))
+	slog.SetDefault(log.Logger)
 	os.Setenv("USER", "")
 	os.Setenv("PASS", "")
 	os.Setenv("DB_FILE", "test.db") //nolint:errcheck,gosec
 	_ = database.InitializeDatabase()
 	defer database.Close()
-	router = setupRouter(log.Logger)
+	router = setupRouter()
 	w = httptest.NewRecorder()
 	os.Exit(m.Run())
 }

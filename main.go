@@ -22,6 +22,7 @@ limitations under the License.
 package main
 
 import (
+	"log/slog"
 	"os"
 	"time"
 
@@ -32,20 +33,21 @@ import (
 
 func main() {
 	logger := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime))
+	slog.SetDefault(logger.Logger)
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
 		port = "8080"
 	}
 
 	if err := database.InitializeDatabase(); err != nil {
-		logger.Error("database init", "err", err)
+		slog.Error("database init", "err", err)
 		os.Exit(1)
 	}
 	defer database.Close()
 	checkDefaultUser()
 	users, err := database.GetAllUsers()
 	if err != nil {
-		logger.Error("get users", "err", err)
+		slog.Error("get users", "err", err)
 		os.Exit(1) //nolint:gocritic
 	}
 	for _, user := range users {
@@ -56,6 +58,6 @@ func main() {
 			models.TrackingInactive(user.Username)
 		}
 	}
-	router := setupRouter(logger.Logger)
+	router := setupRouter()
 	router.Run(":" + port)
 }
