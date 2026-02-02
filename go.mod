@@ -7,7 +7,7 @@ require (
 	github.com/devilcove/mux v0.2.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/sessions v1.4.0
-	github.com/mattkasun/tools v0.2.3
+	github.com/mattkasun/tools v0.3.0
 	go.etcd.io/bbolt v1.4.3
 	golang.org/x/crypto v0.47.0
 )
