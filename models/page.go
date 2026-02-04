@@ -36,13 +36,9 @@ func init() {
 }
 
 func version() string {
-	version := "v0.1.0"
+	version := "unknown"
 	if info, ok := debug.ReadBuildInfo(); ok {
-		for _, setting := range info.Settings {
-			if setting.Key == "vcs.revision" {
-				return version + " " + setting.Value
-			}
-		}
+		version = info.Main.Version
 	}
 	return version
 }
