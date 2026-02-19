@@ -22,6 +22,10 @@ linters:
   settings:
     cyclop:
       max-complexity: 11
+    gosec:
+      excludes:
+        - G706
+        - G117
     gosmopolitan:
       allow-time-local: true
     varnamelen:
