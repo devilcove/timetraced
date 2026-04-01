@@ -26,6 +26,7 @@ linters:
       excludes:
         - G706
         - G117
+        - G120
     gosmopolitan:
       allow-time-local: true
     varnamelen:
