@@ -13,3 +13,22 @@
     </div>
 </div>
 {{end}}
+
+{{ define "showProjects" }}
+<div class="grid">
+    <div></div>
+    <div>
+        <h1>Projects</h1>
+        {{range .Projects}}
+        <button fx-action="/projects/start/{{.}}" fx-target="#content" fx-swap="innerHTML" fx-method="post">
+            {{.}}
+        </button>
+        <br>
+        {{ end }}
+        <hr>
+        <button fx-action="/projects/add/" fx-target="#content" fx-swap="innerHTML">
+            New Project
+        </button>
+    </div>
+</div>
+{{ end }}

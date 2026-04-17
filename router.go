@@ -59,6 +59,7 @@ func setupRouter() *mux.Router {
 	users.Get("/{name}", getUser)
 
 	projects := router.Group("/projects", auth)
+	projects.Get("/list/", showProjects)
 	projects.Get("/add/", displayProjectForm)
 	projects.Post("/{$}", addProject)
 	projects.Post("/stop/", stop)

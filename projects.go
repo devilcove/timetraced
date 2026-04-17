@@ -16,6 +16,15 @@ func displayProjectForm(w http.ResponseWriter, _ *http.Request) {
 	render(w, "addProject", nil)
 }
 
+func showProjects(w http.ResponseWriter, r *http.Request) {
+	session := sessionData(r)
+	if session == nil {
+		processError(w, http.StatusUnauthorized, "empty session")
+		return
+	}
+	render(w, "showProjects", populatePage(session.User))
+}
+
 func addProject(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		processError(w, http.StatusBadRequest, "invalid data sent")
@@ -81,7 +90,7 @@ func start(w http.ResponseWriter, r *http.Request) {
 	}
 	models.TrackingActive(user, project)
 	slog.Info("tracking started", "project", project.Name)
-	displayMain(w, r)
+	render(w, "content", populatePage(session.User))
 }
 
 func stopE(user string) error {
@@ -109,5 +118,5 @@ func stop(w http.ResponseWriter, r *http.Request) {
 		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	displayMain(w, r)
+	render(w, "content", populatePage(session.User))
 }

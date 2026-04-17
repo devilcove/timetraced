@@ -12,32 +12,20 @@
 
 <div class="tab" id="tab">
     <a href="/">
-        <img src="images/timetrace.png" alt="Timetrace" height="60"></a>
-    <div class="dropdown">
-        <button class="dropbtn"><i class="fa fa-home"></i>Projects</button>
-        <div class="dropdown-content">
-            <hr>
-            {{range .Projects }} <button fx-action="/projects/start/{{.}}" fx-target="#contents" fx-method="post"
-                fx-swap="innerHTML">{{.}}
-            </button><br>
-            {{end}}
-            <hr>
-            <form fx-action="/projects/add/" fx-target="#content" fx-swap="innerHTML">
-                <button type="submit">New Project</button><br>
-            </form>
-            <a href="/logout/">Logout</a>
-        </div>
-    </div>
-    <button type="button" fx-action="/reports/" fx-target="#content" fx-swap="innerHTML">
+        <button><img src="images/timetrace.png" alt="Timetrace" height="60"></button></a>
+    <button fx-action="/projects/list/" fx-target="#content" fx-swap="innerHTML">
+        <i class="fa fa-home"></i>PROJECTS
+    </button>
+    <button fx-action="/reports/" fx-target="#content" fx-swap="innerHTML">
         <i class="fa fa-file-alt"></i>
         REPORTS</button>
-    <button type="button" fx-action="/users/" fx-target="#content" fx-swap="innerHTML">
+    <button fx-action="/users/" fx-target="#content" fx-swap="innerHTML">
         <i class="fa fa-user"></i>
         USERS</button>
-    <button type="button" fx-action="/config/" fx-target="#content" fx-swap="innerHTML">
+    <button fx-action="/config/" fx-target="#content" fx-swap="innerHTML">
         <i class="fa fa-cog"></i>
         SETTINGS</button>
-    <button type="button" class="split" command="show-modal" commandfor="about">
+    <button class="split" command="show-modal" commandfor="about">
         <i class="fa fa-info-circle"></i>
         ABOUT</button>
     <button class="icon" onclick="showMenu()"><i class="fa fa-bars"></i></button>
