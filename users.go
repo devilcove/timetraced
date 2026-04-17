@@ -15,10 +15,6 @@ const SessionAge = 60 * 60 * 8 // 8 hours in seconds
 
 func login(w http.ResponseWriter, r *http.Request) {
 	var user models.User
-	if err := r.ParseForm(); err != nil {
-		processError(w, http.StatusBadRequest, "invalid user form")
-		return
-	}
 	user.Username = r.FormValue("username")
 	user.Password = r.FormValue("password")
 	if !validateUser(&user) {
@@ -50,7 +46,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 			page.Projects = append(page.Projects, project.Name)
 		}
 	}
-	_ = templates.ExecuteTemplate(w, "content", page)
+	render(w, "content", page)
 }
 
 func validateUser(visitor *models.User) bool {
@@ -89,16 +85,11 @@ func logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func register(w http.ResponseWriter, _ *http.Request) {
-	page := models.GetPage()
-	_ = templates.ExecuteTemplate(w, "register", page)
+	render(w, "register", models.GetPage())
 }
 
 func registerUser(w http.ResponseWriter, r *http.Request) {
 	var user models.User
-	if err := r.ParseForm(); err != nil {
-		processError(w, http.StatusBadRequest, "invalid user")
-		return
-	}
 	user.Username = r.FormValue("username")
 	user.Password = r.FormValue("password")
 	if _, err := database.GetUser(user.Username); err == nil {
@@ -218,8 +209,7 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 		returnedUser = append(returnedUser, user)
 	}
 	slog.Info("getusers", "users", returnedUser, "session", session)
-	_ = templates.ExecuteTemplate(w, "user", returnedUser)
-	// c.HTML(http.StatusOK, "user", returnedUser)
+	render(w, "user", returnedUser)
 }
 
 func getUser(w http.ResponseWriter, r *http.Request) {
@@ -239,7 +229,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	editor := models.Editor{User: user, AsAdmin: session.Admin}
-	_ = templates.ExecuteTemplate(w, "editUser", editor)
+	render(w, "editUser", editor)
 }
 
 func getCurrentUser(w http.ResponseWriter, r *http.Request) {
@@ -254,7 +244,7 @@ func getCurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	editor := models.Editor{User: user, AsAdmin: session.Admin}
-	_ = templates.ExecuteTemplate(w, "editUser", editor)
+	render(w, "editUser", editor)
 }
 
 func hashPassword(password string) (string, error) {

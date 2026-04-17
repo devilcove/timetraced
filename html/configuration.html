@@ -1,9 +1,9 @@
 {{define "config"}}
-<div class="w3-row">
-    <div class="w3-third"><br></div>
-    <div class="w3-third">
+<div class="grid">
+    <div></div> <!--empty column to center next -->
+    <div>
         <h1>Configuration</h1>
-        <form hx-post="/config/" hx-target="#main">
+        <form fx-action="/config/" fx-target="#content" fx-method="post" fx-swap="innerHTML">
             <p><label>Theme</label>
                 <select name="theme">
                     <option>indigo</option>
@@ -42,9 +42,8 @@
                     <option>10</option>
                 </select>
             </p>
-            <p><button class="w3-button w3-theme-dark w3-padding large" type="button" hx-get="/"
-                    hx-target="#main">Cancel</button>
-                <button class="w3-button w3-theme-dark w3-padding large" type="submit">Submit</button>
+            <p><button onclick="location.href='/'">Cancel</button>
+                <button type="submit">Submit</button>
             </p>
         </form>
     </div>

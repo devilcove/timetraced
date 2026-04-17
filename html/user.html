@@ -1,11 +1,11 @@
 {{define "user"}}
 <!-- [html-validate-disable prefer-tbody]-->
-<div class="w3-row">
-    <div class="w3-third"><br></div>
-    <div class="w3-third">
+<div class="grid">
+    <div></div>
+    <div>
         <h1>Users</h1>
-        <table class="w3-table-all w3-center">
-            <tr class="w3-theme-d5 w3-center">
+        <table>
+            <tr>
                 <td>Name</td>
                 <td>Admin</td>
                 <td>Edit</td>
@@ -15,26 +15,27 @@
             <tr>
                 <td>{{.Username}}</td>
                 <td>{{.IsAdmin}}</td>
-                <td><i class="fa fa-edit" hx-get="/users/{{.Username}}" hx-target="#content"></i></td>
-                <td><i class="fa fa-user-slash" hx-delete="/users/{{.Username}}" hx-target="#content"
-                        onsubmit="return confirm('delete user')"></i></td>
+                <td><i class="fa fa-edit" fx-action="/users/{{.Username}}" fx-target="#content"></i></td>
+                <td><i class="fa fa-user-slash" fx-method='delete' fx-action="/users/{{.Username}}" fx-target="#content"
+                        fx-swap='innerHTML' onsubmit="return confirm('delete user')"></i></td>
             </tr>
             {{end}}
         </table>
-        <div class="w3-center">
-            <p></p>New User &nbsp; <i class="fa fa-user" hx-get="/users/register/" hx-target="#content"></i></p>
+        <div>
+            <p></p>New User &nbsp; <i class="fa fa-user" fx-action="/users/register/" fx-target="#content"></i></p>
         </div>
     </div>
 </div>
 {{end}}
 
 {{define "editUser"}}
-<div class="w3-row">
-    <div class="w3-third"><br></div>
-    <div class="w3-third">
+<div class="grid">
+    <div></div>
+    <div>
         <h1>Edit User</h1>
         <h2>{{.Username}} {{.IsAdmin}}</h2>
-        <form name="editUser" hx-post="/users/{{.Username}}" hx-target="#content" onsubmit="return valPass()">
+        <form name="editUser" fx-method='post' fx-action="/users/{{.Username}}" fx-target="#content" fx-swap='innerHTML'
+            onsubmit="return valPass()">
             <label for="password">New Password: </label>
             <input type="password" placeholder="new password" name="password" required><br>
             <label for="verify">Verify Password: </label>
@@ -42,9 +43,9 @@
             {{ if .AsAdmin }}
             <label for="admin">Admin</label>
             <input type="checkbox" name="admin" {{ if .IsAdmin}} checked {{end}}><br><br>
-            <button type="button" hx-get="/users/" hx-target="#content">Cancel</button>
+            <button type="button" fx-action="/users/" fx-target="#content">Cancel</button>
             {{else}}
-            <button type="button" hx-get="/" hx-target="#main">Cancel</button>
+            <button type="button" fx-action="/" fx-target="#main">Cancel</button>
             {{end }}
             <button type="submit">Submit</button>
         </form>

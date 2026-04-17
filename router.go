@@ -3,11 +3,15 @@ package main
 import (
 	"bytes"
 	"crypto/rand"
+	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/devilcove/mux"
@@ -127,4 +131,20 @@ func randBytes(l int) []byte {
 		panic(err)
 	}
 	return bytes
+}
+
+func render(w io.Writer, template string, data any) {
+	if err := templates.ExecuteTemplate(w, template, data); err != nil {
+		slog.Error("render template", "caller", caller(2), "name", template,
+			"data", data, "error", err)
+	}
+}
+
+func caller(depth int) string {
+	pc, file, no, ok := runtime.Caller(depth)
+	details := runtime.FuncForPC(pc)
+	if ok && details != nil {
+		return fmt.Sprintf("%s %s:%d", details.Name(), filepath.Base(file), no)
+	}
+	return "unknown caller"
 }

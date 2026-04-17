@@ -62,6 +62,18 @@
   background-color: rgb(111, 72, 147);
 }
 
+.grid {
+  display: grid;
+  grid-template-columns: 35% 30% 35%;
+  padding: 10px
+}
+
+.grid div {
+  padding: 10px;
+  text-align: left;
+  border: 1px solid black;
+}
+
 @keyframes zoomIn {
   from {
     transform: scale(0)
@@ -73,13 +85,17 @@
 }
 
 @media screen and (max-width: 600px) {
-  .tab button:not(:first-child) {
+  .tab button {
     display: none;
   }
 
   .tab button.icon {
     float: right;
     display: block;
+  }
+
+  .grid {
+    grid-template-columns: 10% 80% 10%;
   }
 }
 

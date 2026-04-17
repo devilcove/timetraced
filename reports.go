@@ -10,9 +10,6 @@ import (
 )
 
 func getReport(w http.ResponseWriter, r *http.Request) { //nolint:funlen
-	if err := r.ParseForm(); err != nil {
-		processError(w, http.StatusBadRequest, "invalid data")
-	}
 	var err error
 	projectsToQuery := []string{}
 	session := sessionData(r)
@@ -24,6 +21,7 @@ func getReport(w http.ResponseWriter, r *http.Request) { //nolint:funlen
 		End:     r.FormValue("end"),
 		Project: r.FormValue("project"),
 	}
+	slog.Info("getReport", "request", reportRequest)
 	dbRequest.Start, err = time.Parse("2006-01-02", reportRequest.Start)
 	if err != nil {
 		processError(w, http.StatusBadRequest, err.Error())
@@ -73,7 +71,7 @@ func getReport(w http.ResponseWriter, r *http.Request) { //nolint:funlen
 			displayRecords = append(displayRecords, displayRecord)
 		}
 	}
-	_ = templates.ExecuteTemplate(w, "results", displayRecords)
+	render(w, "results", displayRecords)
 }
 
 func report(w http.ResponseWriter, r *http.Request) {
@@ -92,5 +90,5 @@ func report(w http.ResponseWriter, r *http.Request) {
 			page.Projects = append(page.Projects, project.Name)
 		}
 	}
-	_ = templates.ExecuteTemplate(w, "report", page)
+	render(w, "report", page)
 }

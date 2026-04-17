@@ -10,52 +10,37 @@
     }
 </script>
 
-<div class="tab" id="">
+<div class="tab" id="tab">
     <a href="/">
         <img src="images/timetrace.png" alt="Timetrace" height="60"></a>
     <div class="dropdown">
-        <button class="dropbtn"><i class="fa fa-home w3-large"></i>Projects</button>
+        <button class="dropbtn"><i class="fa fa-home"></i>Projects</button>
         <div class="dropdown-content">
             <hr>
-            {{range .Projects }} <button hx-post="/projects/start/{{.}}" hx-target="#main">{{.}}
+            {{range .Projects }} <button fx-action="/projects/start/{{.}}" fx-target="#contents" fx-method="post"
+                fx-swap="innerHTML">{{.}}
             </button><br>
             {{end}}
             <hr>
-            <form hx-get="/projects/add/" hx-target="#content">
-                <button type="submit" class="w3-button">New Project</button><br>
+            <form fx-action="/projects/add/" fx-target="#content" fx-swap="innerHTML">
+                <button type="submit">New Project</button><br>
             </form>
-            <a href="/logout/" class="w3-bar-item w3-button">Logout</a>
+            <a href="/logout/">Logout</a>
         </div>
     </div>
-    <button type="button" hx-get="/reports/" hx-target="#content">
-        <i class="fa fa-file-alt w3-large"></i>
+    <button type="button" fx-action="/reports/" fx-target="#content" fx-swap="innerHTML">
+        <i class="fa fa-file-alt"></i>
         REPORTS</button>
-    <button type="button" hx-get="/users/" hx-target="#content">
-        <i class="fa fa-user w3-large"></i>
+    <button type="button" fx-action="/users/" fx-target="#content" fx-swap="innerHTML">
+        <i class="fa fa-user"></i>
         USERS</button>
-    <button type="button" hx-get="/config/" hx-target="#content">
-        <i class="fa fa-cog w3-large"></i>
+    <button type="button" fx-action="/config/" fx-target="#content" fx-swap="innerHTML">
+        <i class="fa fa-cog"></i>
         SETTINGS</button>
     <button type="button" class="split" command="show-modal" commandfor="about">
-        <i class="fa fa-info-circle w3-large"></i>
+        <i class="fa fa-info-circle"></i>
         ABOUT</button>
     <button class="icon" onclick="showMenu()"><i class="fa fa-bars"></i></button>
 
-</div>
-{{end}}
-
-{{define "addProject"}}
-<div id="addProject">
-    <div class="w3-container w3-center w3-theme">
-        <h1>Add New Project</h1>
-        <form hx-post="/projects/" hx-target="#main" hx-target-error="#error">
-            <label for="Name">New Project</label><br>
-            <input type="text" placeholder="new project name" name="name" required><br>
-            <p><button class="w3-button w3-theme-dark w3-padding large" type="button" hx-get="/"
-                    hx-target="#main">Cancel</button>
-                <button class="w3-button w3-theme-dark w3-padding large" type="submit">Submit</button>
-            </p>
-        </form>
-    </div>
 </div>
 {{end}}

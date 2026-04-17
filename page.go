@@ -15,22 +15,28 @@ func displayMain(w http.ResponseWriter, r *http.Request) {
 	session := sessionData(r)
 	page.NeedsLogin = true
 	if session != nil {
-		slog.Debug("displaying status for", "user", session.User, "loggedIn", session.LoggedIn)
+		slog.Info("displaying status for", "user", session.User, "loggedIn", session.LoggedIn)
 		page = populatePage(session.User)
 		if !session.LoggedIn {
 			page.NeedsLogin = true
 		}
 	}
-	slog.Debug(
+	slog.Info(
 		"displaystatus",
-		"page",
+		"loginRequired",
 		page.NeedsLogin,
 		"refresh",
 		page.Refresh,
 		"theme",
 		page.Theme,
+		"page",
+		page,
 	)
-	_ = templates.ExecuteTemplate(w, "layout", page)
+	if page.NeedsLogin {
+		render(w, "login", page)
+		return
+	}
+	render(w, "layout", page)
 }
 
 func displayStatus(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +48,7 @@ func displayStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	page := populatePage(user)
-	_ = templates.ExecuteTemplate(w, "content", page)
+	render(w, "content", page)
 }
 
 func populatePage(user string) models.Page {

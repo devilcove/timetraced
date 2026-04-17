@@ -9,7 +9,7 @@ import (
 
 func configOld(w http.ResponseWriter, _ *http.Request) {
 	page := models.GetPage()
-	_ = templates.ExecuteTemplate(w, "config", page)
+	render(w, "config", page)
 }
 
 func setConfig(w http.ResponseWriter, r *http.Request) {
@@ -32,6 +32,5 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 	models.SetFont(user, config.Font)
 	models.SetRefresh(user, config.Refresh)
 	page := models.GetUserPage(user)
-	w.Header().Set("Hx-Refresh", "true")
-	_ = templates.ExecuteTemplate(w, "layout", page)
+	render(w, "layout", page)
 }

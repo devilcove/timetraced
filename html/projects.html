@@ -1,0 +1,15 @@
+{{define "addProject"}}
+<div class="grid">
+    <div></div>
+    <div>
+        <h1>Add New Project</h1>
+        <form fx-method="post" fx-action="/projects/" fx-target="#content" fx-swap="innerHTML">
+            <label for="Name">New Project</label><br>
+            <input type="text" placeholder="new project name" name="name" required><br>
+            <p><button onclick="location.href='/'">Cancel</button>
+                <button type="submit">Submit</button>
+            </p>
+        </form>
+    </div>
+</div>
+{{end}}

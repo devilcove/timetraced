@@ -13,7 +13,7 @@ import (
 )
 
 func displayProjectForm(w http.ResponseWriter, _ *http.Request) {
-	_ = templates.ExecuteTemplate(w, "addProject", nil)
+	render(w, "addProject", nil)
 }
 
 func addProject(w http.ResponseWriter, r *http.Request) {
