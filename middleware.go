@@ -26,7 +26,8 @@ func auth(next http.Handler) http.Handler {
 		slog.Debug("auth", "session", session)
 		if !session.LoggedIn {
 			slog.Error("not logged in")
-			http.Redirect(w, r, "/login/", http.StatusSeeOther)
+			w.WriteHeader(http.StatusUnauthorized)
+			render(w, "loginForm", nil)
 			return
 		}
 		if err := session.Session.Save(r, w); err != nil {
