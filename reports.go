@@ -12,9 +12,9 @@ import (
 func getReport(w http.ResponseWriter, r *http.Request) { //nolint:funlen
 	var err error
 	projectsToQuery := []string{}
-	session := sessionData(r)
+	user := getRequestUser(r)
 	dbRequest := models.DatabaseReportRequest{
-		User: session.User,
+		User: user.Username,
 	}
 	reportRequest := models.ReportRequest{
 		Start:   r.FormValue("start"),
@@ -75,13 +75,8 @@ func getReport(w http.ResponseWriter, r *http.Request) { //nolint:funlen
 }
 
 func report(w http.ResponseWriter, r *http.Request) {
-	session := sessionData(r)
-	if session == nil {
-		processError(w, http.StatusBadRequest, "invalid data")
-		return
-	}
-	user := session.User
-	page := populatePage(user)
+	user := getRequestUser(r)
+	page := populatePage(user.Username)
 	projects, err := database.GetAllProjects()
 	if err != nil {
 		slog.Error(err.Error())

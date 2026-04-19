@@ -13,12 +13,7 @@ func configOld(w http.ResponseWriter, _ *http.Request) {
 }
 
 func setConfig(w http.ResponseWriter, r *http.Request) {
-	session := sessionData(r)
-	user := session.User
-	if err := r.ParseForm(); err != nil {
-		processError(w, http.StatusBadRequest, "invalid data")
-		return
-	}
+	user := getRequestUser(r)
 	refresh, err := strconv.Atoi(r.FormValue("refresh"))
 	if err != nil {
 		refresh = 5
@@ -28,9 +23,9 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 		Font:    r.FormValue("font"),
 		Refresh: refresh,
 	}
-	models.SetTheme(user, config.Theme)
-	models.SetFont(user, config.Font)
-	models.SetRefresh(user, config.Refresh)
-	page := populatePage(user)
+	models.SetTheme(user.Username, config.Theme)
+	models.SetFont(user.Username, config.Font)
+	models.SetRefresh(user.Username, config.Refresh)
+	page := populatePage(user.Username)
 	render(w, "content", page)
 }

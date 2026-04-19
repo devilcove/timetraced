@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/rand"
 	"fmt"
 	"html/template"
 	"io"
@@ -14,30 +13,30 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/devilcove/cookie"
 	"github.com/devilcove/mux"
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
-	"github.com/gorilla/sessions"
 )
 
 const (
-	sessionBytes = 32
-	cookieAge    = 300
+	cookieAge  = 300
+	cookieName = "devilcove-time"
 )
 
-var (
-	store     *sessions.CookieStore
-	templates *template.Template
-)
+var templates *template.Template
 
 // //go:embed images/favicon.ico
 // var icon embed.FS
 
 func setupRouter() *mux.Router {
-	store = sessions.NewCookieStore(randBytes(sessionBytes))
-	store.MaxAge(cookieAge)
-	store.Options.HttpOnly = true
-	store.Options.SameSite = http.SameSiteStrictMode
+	if err := cookie.New(cookieName, cookieAge); err != nil {
+		log.Fatal("set cookie", err)
+	}
+	// store = sessions.NewCookieStore(randBytes(sessionBytes))
+	// store.MaxAge(cookieAge)
+	// store.Options.HttpOnly = tru)e
+	// store.Options.SameSite = http.SameSiteStrictMode
 
 	router := mux.NewRouter(mux.Logger)
 
@@ -123,15 +122,6 @@ func checkDefaultUser() {
 		"env pass",
 		os.Getenv("PASS"),
 	)
-}
-
-func randBytes(l int) []byte {
-	bytes := make([]byte, l)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		panic(err)
-	}
-	return bytes
 }
 
 func render(w io.Writer, template string, data any) {

@@ -17,12 +17,8 @@ func displayProjectForm(w http.ResponseWriter, _ *http.Request) {
 }
 
 func showProjects(w http.ResponseWriter, r *http.Request) {
-	session := sessionData(r)
-	if session == nil {
-		processError(w, http.StatusUnauthorized, "empty session")
-		return
-	}
-	render(w, "showProjects", populatePage(session.User))
+	user := getRequestUser(r)
+	render(w, "showProjects", populatePage(user.Username))
 }
 
 func addProject(w http.ResponseWriter, r *http.Request) {
@@ -57,12 +53,7 @@ func addProject(w http.ResponseWriter, r *http.Request) {
 
 func start(w http.ResponseWriter, r *http.Request) {
 	proj := r.PathValue("name")
-	session := sessionData(r)
-	if session == nil {
-		displayMain(w, r)
-		return
-	}
-	user := session.User
+	user := getRequestUser(r)
 	project, err := database.GetProject(proj)
 	if err != nil {
 		processError(w, http.StatusBadRequest, "error reading project "+err.Error())
@@ -72,8 +63,8 @@ func start(w http.ResponseWriter, r *http.Request) {
 		processError(w, http.StatusBadRequest, "project is not active")
 		return
 	}
-	if models.IsTrackingActive(user) {
-		if err := stopE(user); err != nil {
+	if models.IsTrackingActive(user.Username) {
+		if err := stopE(user.Username); err != nil {
 			processError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -81,16 +72,16 @@ func start(w http.ResponseWriter, r *http.Request) {
 	record := models.Record{
 		ID:      uuid.New(),
 		Project: proj,
-		User:    user,
+		User:    user.Username,
 		Start:   time.Now(),
 	}
 	if err := database.SaveRecord(&record); err != nil {
 		processError(w, http.StatusInternalServerError, "failed to save record "+err.Error())
 		return
 	}
-	models.TrackingActive(user, project)
+	models.TrackingActive(user.Username, project)
 	slog.Info("tracking started", "project", project.Name)
-	render(w, "content", populatePage(session.User))
+	render(w, "content", populatePage(user.Username))
 }
 
 func stopE(user string) error {
@@ -112,11 +103,10 @@ func stopE(user string) error {
 }
 
 func stop(w http.ResponseWriter, r *http.Request) {
-	session := sessionData(r)
-	user := session.User
-	if err := stopE(user); err != nil {
+	user := getRequestUser(r)
+	if err := stopE(user.Username); err != nil {
 		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	render(w, "content", populatePage(session.User))
+	render(w, "content", populatePage(user.Username))
 }

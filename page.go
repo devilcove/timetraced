@@ -6,48 +6,29 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/devilcove/cookie"
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
 )
 
 func displayMain(w http.ResponseWriter, r *http.Request) {
 	page := models.GetPage()
-	session := sessionData(r)
-	page.NeedsLogin = true
-	if session != nil {
-		slog.Info("displaying status for", "user", session.User, "loggedIn", session.LoggedIn)
-		page = populatePage(session.User)
-		if !session.LoggedIn {
-			page.NeedsLogin = true
-		}
-	}
-	slog.Info(
-		"displaystatus",
-		"loginRequired",
-		page.NeedsLogin,
-		"refresh",
-		page.Refresh,
-		"theme",
-		page.Theme,
-		"page",
-		page,
-	)
-	if page.NeedsLogin {
+	user, err := cookie.Get(r, cookieName)
+	if err != nil {
 		render(w, "login", page)
 		return
 	}
+	page = populatePage(string(user))
 	render(w, "layout", page)
 }
 
 func displayStatus(w http.ResponseWriter, r *http.Request) {
-	session := sessionData(r)
-	user := session.User
-	loggedIn := session.LoggedIn
-	if user == "" || !loggedIn {
-		displayMain(w, r)
+	user, err := cookie.Get(r, cookieName)
+	if err != nil {
+		render(w, "loginForm", nil)
 		return
 	}
-	page := populatePage(user)
+	page := populatePage(string(user))
 	render(w, "content", page)
 }
 

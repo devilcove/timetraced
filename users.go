@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/devilcove/cookie"
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
-	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,19 +22,8 @@ func login(w http.ResponseWriter, r *http.Request) {
 		processError(w, http.StatusBadRequest, "invalid user")
 		return
 	}
-	session := sessions.NewSession(store, "devilcove-time")
-	session.Values["user"] = user.Username
-	session.Values["loggedIn"] = true
-	session.Values["admin"] = user.IsAdmin
-	session.Options = &sessions.Options{
-		MaxAge:   SessionAge,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	}
-	if err := session.Save(r, w); err != nil {
-		slog.Error("session save", "error", err)
-	}
 	user.Password = ""
+	saveCookie(user, w)
 	slog.Debug("login", "user", user.Username)
 	page := populatePage(user.Username)
 	page.NeedsLogin = false
@@ -55,7 +44,6 @@ func validateUser(visitor *models.User) bool {
 		slog.Error("no such user", "user", visitor.Username, "error", err)
 		return false
 	}
-	// fmt.Println(visitor.Username, user.Username)
 	if visitor.Username == user.Username && checkPassword(visitor, &user) {
 		visitor.IsAdmin = user.IsAdmin
 		return true
@@ -73,13 +61,12 @@ func checkPassword(plain, hash *models.User) bool {
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
-	session := sessionData(r)
-	if session != nil {
-		if err := stopE(session.User); err != nil {
-			slog.Error("failed to stop tracking for user on logout", "error", err)
-		}
-		session.Session.Options.MaxAge = -1
-		_ = session.Session.Save(r, w)
+	user := getRequestUser(r)
+	if err := stopE(user.Username); err != nil {
+		slog.Error("failed to stop tracking for user on logout", "error", err)
+	}
+	if err := cookie.Clear(w, cookieName, false); err != nil {
+		slog.Error("clear cookie", "error", err)
 	}
 	http.Redirect(w, r, "/", http.StatusFound)
 }
@@ -115,11 +102,7 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func editUser(w http.ResponseWriter, r *http.Request) {
-	session := sessionData(r)
-	if session == nil {
-		displayMain(w, r)
-		return
-	}
+	editor := getRequestUser(r)
 	if err := r.ParseForm(); err != nil {
 		processError(w, http.StatusBadRequest, "invalid data")
 		return
@@ -136,8 +119,7 @@ func editUser(w http.ResponseWriter, r *http.Request) {
 		user.IsAdmin = true
 	}
 	slog.Debug("edit user", "new", user)
-	visitor := session.User
-	if user.Username != visitor && !session.Admin {
+	if user.Username != editor.Username && !editor.IsAdmin {
 		processError(w, http.StatusUnauthorized, "you are not authorized to edit this user")
 		return
 	}
@@ -152,7 +134,7 @@ func editUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	updatedUser.IsAdmin = user.IsAdmin
-	if !session.Admin {
+	if !editor.IsAdmin {
 		updatedUser.IsAdmin = false
 	}
 	updatedUser.Updated = time.Now()
@@ -166,13 +148,9 @@ func editUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteUser(w http.ResponseWriter, r *http.Request) {
-	session := sessionData(r)
-	if session == nil {
-		displayMain(w, r)
-		return
-	}
+	editor := getRequestUser(r)
 	user := r.PathValue("name")
-	if !session.Admin {
+	if !editor.IsAdmin {
 		processError(w, http.StatusUnauthorized, "you are not authorized to delete this user")
 		return
 	}
@@ -189,13 +167,9 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsers(w http.ResponseWriter, r *http.Request) {
-	session := sessionData(r)
-	if session == nil {
-		processError(w, http.StatusBadRequest, "no session")
-		return
-	}
-	if !session.Admin {
-		getCurrentUser(w, r)
+	editor := getRequestUser(r)
+	if !editor.IsAdmin {
+		getCurrentUser(w, editor.Username)
 		return
 	}
 	users, err := database.GetAllUsers()
@@ -208,42 +182,32 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 		user.Password = ""
 		returnedUser = append(returnedUser, user)
 	}
-	slog.Info("getusers", "users", returnedUser, "session", session)
 	render(w, "user", returnedUser)
 }
 
 func getUser(w http.ResponseWriter, r *http.Request) {
-	session := sessionData(r)
-	if session == nil {
-		processError(w, http.StatusBadRequest, "no session")
-		return
-	}
+	editor := getRequestUser(r)
 	editUser := r.PathValue("name")
-	if !session.Admin && editUser != session.User {
+	if !editor.IsAdmin && editUser != editor.Username {
 		processError(w, http.StatusBadRequest, "non-admin cannot edit other users")
 		return
 	}
-	user, err := database.GetUser(editUser)
+	user, err := database.GetUser(r.PathValue("name"))
 	if err != nil {
 		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	editor := models.Editor{User: user, AsAdmin: session.Admin}
-	render(w, "editUser", editor)
+	edit := models.Editor{User: user, AsAdmin: editor.IsAdmin}
+	render(w, "editUser", edit)
 }
 
-func getCurrentUser(w http.ResponseWriter, r *http.Request) {
-	session := sessionData(r)
-	if session == nil {
-		processError(w, http.StatusBadRequest, "session data")
-		return
-	}
-	user, err := database.GetUser(session.User)
+func getCurrentUser(w http.ResponseWriter, name string) {
+	user, err := database.GetUser(name)
 	if err != nil {
 		processError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	editor := models.Editor{User: user, AsAdmin: session.Admin}
+	editor := models.Editor{User: user, AsAdmin: false}
 	render(w, "editUser", editor)
 }
 
