@@ -77,13 +77,5 @@ func getReport(w http.ResponseWriter, r *http.Request) { //nolint:funlen
 func report(w http.ResponseWriter, r *http.Request) {
 	user := getRequestUser(r)
 	page := populatePage(user.Username)
-	projects, err := database.GetAllProjects()
-	if err != nil {
-		slog.Error(err.Error())
-	} else {
-		for _, project := range projects {
-			page.Projects = append(page.Projects, project.Name)
-		}
-	}
 	render(w, "report", page)
 }

@@ -37,7 +37,7 @@ func populatePage(user string) models.Page {
 	page.Tracking = models.IsTrackingActive(user)
 	projects, err := database.GetAllProjects()
 	if err != nil {
-		slog.Error(err.Error())
+		slog.Error("get projects", "error", err)
 	} else {
 		for _, project := range projects {
 			page.Projects = append(page.Projects, project.Name)
