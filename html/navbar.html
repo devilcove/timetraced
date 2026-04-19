@@ -11,21 +11,22 @@
 </script>
 
 <div class="tab" id="tab">
-    <a href="/">
-        <button><img src="images/timetrace.png" alt="Timetrace" height="60"></button></a>
-    <button fx-action="/projects/list/" fx-target="#content" fx-swap="innerHTML">
+    <button onclick="location.href='/'">
+        <img src="images/timetrace.png" alt="Timetrace" height="40">
+    </button>
+    <button onclick="showMenu()" fx-action="/projects/list/" fx-target="#content" fx-swap="innerHTML">
         <i class="fa fa-home"></i>PROJECTS
     </button>
-    <button fx-action="/reports/" fx-target="#content" fx-swap="innerHTML">
+    <button onclick="showMenu()" fx-action="/reports/" fx-target="#content" fx-swap="innerHTML">
         <i class="fa fa-file-alt"></i>
         REPORTS</button>
-    <button fx-action="/users/" fx-target="#content" fx-swap="innerHTML">
+    <button onclick="showMenu()" fx-action="/users/" fx-target="#content" fx-swap="innerHTML">
         <i class="fa fa-user"></i>
         USERS</button>
-    <button fx-action="/config/" fx-target="#content" fx-swap="innerHTML">
+    <button onclick="showMenu()" fx-action="/config/" fx-target="#content" fx-swap="innerHTML">
         <i class="fa fa-cog"></i>
         SETTINGS</button>
-    <button class="split" command="show-modal" commandfor="about">
+    <button onclick="showMenu()" command="show-modal" commandfor="about">
         <i class="fa fa-info-circle"></i>
         ABOUT</button>
     <button class="icon" onclick="showMenu()"><i class="fa fa-bars"></i></button>

@@ -5,27 +5,10 @@
         <h1>Configuration</h1>
         <form fx-action="/config/" fx-target="#content" fx-method="post" fx-swap="innerHTML">
             <p><label>Theme</label>
-                <select name="theme">
-                    <option>indigo</option>
-                    <option>red</option>
-                    <option>pink</option>
-                    <option>purple</option>
-                    <option>blue</option>
-                    <option>cyan</option>
-                    <option>teal</option>
-                    <option>khaki</option>
-                    <option>blue-grey</option>
-                    <option>grey</option>
-                    <option>black</option>
-                </select>
-            </p>
-            <p><label>Font&nbsp;&nbsp;</label>
-                <select name="font">
-                    <option>Roboto</option>
-                    <option>Montserrat</option>
-                    <option>Lato</option>
-                    <option>Ubuntu</option>
-                    <option>Tangerine</option>
+                <select name="theme" id="theme" onchange="changeTheme()">
+                    <option>system</option>
+                    <option>dark</option>
+                    <option>light</option>
                 </select>
             </p>
             <p><label>Refresh Rate (minutes)</label>
@@ -42,10 +25,10 @@
                     <option>10</option>
                 </select>
             </p>
-            <p><button onclick="location.href='/'">Cancel</button>
-                <button type="submit">Submit</button>
+            <p><button onclick="location.href='/'">Close</button>
             </p>
         </form>
     </div>
 </div>
+<img src="images/1x1.png" onload="currentTheme()">
 {{end}}

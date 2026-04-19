@@ -1,3 +1,45 @@
+:root {
+  --bg: #111111;
+  --text: #ffffff;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #ffffff;
+    --text: #111111;
+  }
+}
+
+/* Explicit Overides */
+[data-theme="light"] {
+  --bg: #ffffff;
+  --text: #111111;
+}
+
+[data-theme="dark"] {
+  --bg: #111111;
+  --text: #ffffff;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Comic Mono', 'Cursive';
+}
+
+dialog {
+  background: var(--bg);
+  color: var(--text);
+  margin-top: 10%;
+  animation: zoomIn 1s;
+}
+
+a:link,
+a:visited {
+  background: var(--bg);
+  color: var(--text);
+}
+
 .center {
   text-align: center;
   margin-left: auto;
@@ -54,12 +96,6 @@
 
 .dropdown:hover .dropdown-content {
   display: block;
-}
-
-.about {
-  margin-top: 10%;
-  animation: zoomIn 1s;
-  background-color: rgb(111, 72, 147);
 }
 
 button {

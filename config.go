@@ -31,6 +31,6 @@ func setConfig(w http.ResponseWriter, r *http.Request) {
 	models.SetTheme(user, config.Theme)
 	models.SetFont(user, config.Font)
 	models.SetRefresh(user, config.Refresh)
-	page := models.GetUserPage(user)
-	render(w, "layout", page)
+	page := populatePage(user)
+	render(w, "content", page)
 }
