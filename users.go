@@ -26,15 +26,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 	saveCookie(user, w)
 	slog.Debug("login", "user", user.Username)
 	page := populatePage(user.Username)
-	page.NeedsLogin = false
-	projects, err := database.GetAllProjects()
-	if err != nil {
-		slog.Error(err.Error())
-	} else {
-		for _, project := range projects {
-			page.Projects = append(page.Projects, project.Name)
-		}
-	}
 	render(w, "content", page)
 }
 

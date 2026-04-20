@@ -6,34 +6,24 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/devilcove/cookie"
 	"github.com/devilcove/timetraced/database"
 	"github.com/devilcove/timetraced/models"
 )
 
 func displayMain(w http.ResponseWriter, r *http.Request) {
-	page := models.GetPage()
-	user, err := cookie.Get(r, cookieName)
-	if err != nil {
-		render(w, "login", page)
-		return
-	}
-	page = populatePage(string(user))
+	user := getRequestUser(r)
+	page := populatePage(user.Username)
 	render(w, "layout", page)
 }
 
 func displayStatus(w http.ResponseWriter, r *http.Request) {
-	user, err := cookie.Get(r, cookieName)
-	if err != nil {
-		render(w, "loginForm", nil)
-		return
-	}
-	page := populatePage(string(user))
+	user := getRequestUser(r)
+	page := populatePage(user.Username)
 	render(w, "content", page)
 }
 
 func populatePage(user string) models.Page {
-	page := models.GetUserPage(user)
+	page := models.GetPage()
 	page.Tracking = models.IsTrackingActive(user)
 	projects, err := database.GetAllProjects()
 	if err != nil {

@@ -22,9 +22,6 @@ func showProjects(w http.ResponseWriter, r *http.Request) {
 }
 
 func addProject(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		processError(w, http.StatusBadRequest, "invalid data sent")
-	}
 	project := models.Project{
 		Name: r.FormValue("name"),
 	}
