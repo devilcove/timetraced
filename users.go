@@ -92,10 +92,6 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 
 func editUser(w http.ResponseWriter, r *http.Request) {
 	editor := getRequestUser(r)
-	if err := r.ParseForm(); err != nil {
-		processError(w, http.StatusBadRequest, "invalid data")
-		return
-	}
 	user := models.User{
 		Username: r.PathValue("name"),
 		Password: r.FormValue("password"),

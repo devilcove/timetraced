@@ -1,17 +1,7 @@
 {{define "navbar"}}
-<script>
-    function showMenu() {
-        var x = document.getElementById("tab");
-        if (x.className === "tab") {
-            x.className += " responsive";
-        } else {
-            x.className = "tab";
-        }
-    }
-</script>
 
 <div class="tab" id="tab">
-    <button onclick="location.href='/'">
+    <button fx-action="/status/" fx-target="#content" fx-swap="innerHTML">
         <img src="images/timetrace.png" alt="Timetrace" height="40">
     </button>
     <button onclick="showMenu()" fx-action="/projects/list/" fx-target="#content" fx-swap="innerHTML">

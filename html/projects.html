@@ -3,13 +3,12 @@
     <div></div>
     <div>
         <h1>Add New Project</h1>
-        <form fx-method="post" fx-action="/projects/" fx-target="#content" fx-swap="innerHTML">
+        <form id="newProject" fx-method="post" fx-action="/projects/" fx-target="#content" fx-swap="innerHTML">
             <label for="Name">New Project</label><br>
             <input type="text" placeholder="new project name" name="name" required><br>
-            <p><button onclick="location.href='/'">Cancel</button>
-                <button type="submit">Submit</button>
-            </p>
         </form>
+        <button fx-action="/status/" fx-target="#content" fx-swap="innerHTML">Cancel</button>
+        <button form="newProject" type="submit">Submit</button>
     </div>
 </div>
 {{end}}
@@ -26,10 +25,10 @@
         <br>
         {{ end }}
         <hr>
+        <button fx-action="/status/" fx-target="#content" fx-swap="innerHTML">Cancel</button>
         <button fx-action="/projects/add/" fx-target="#content" fx-swap="innerHTML">
             New Project
         </button>
-        <button onclick="location.href='/'">Close</button>
     </div>
 </div>
 {{ end }}

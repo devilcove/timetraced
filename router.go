@@ -49,6 +49,9 @@ func setupRouter() *mux.Router {
 	router.Get("/logout/", logout)
 	router.Get("/{$}", displayMain)
 
+	status := router.Group("/status", auth)
+	status.Get("/{$}", displayStatus)
+
 	users := router.Group("/users", auth)
 	users.Get("/{$}", getUsers)
 	users.Get("/register/", register)

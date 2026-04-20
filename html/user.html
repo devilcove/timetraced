@@ -15,16 +15,17 @@
             <tr>
                 <td>{{.Username}}</td>
                 <td>{{.IsAdmin}}</td>
-                <td><i class="fa fa-edit" fx-action="/users/{{.Username}}" fx-target="#content"></i></td>
+                <td><i class="fa fa-edit" fx-action="/users/{{.Username}}" fx-target="#content" fx-swap="innerHTML"></i>
+                </td>
                 <td><i class="fa fa-user-slash" fx-method='delete' fx-action="/users/{{.Username}}" fx-target="#content"
                         fx-swap='innerHTML' onsubmit="return confirm('delete user')"></i></td>
             </tr>
             {{end}}
         </table>
-        <div>
-            <p>New User &nbsp; <i class="fa fa-user" fx-action="/users/register/" fx-target="#content"
-                    fx-swap="innerHTML"></i></p>
-        </div>
+        <p>
+            <button fx-action="/status/" fx-target="#content" fx-swap="innerHTML">Cancel</button>
+            <button fx-action="/users/register/" fx-target="#content" fx-swap="innerHTML">New User</button>
+        </p>
     </div>
 </div>
 {{end}}
@@ -35,7 +36,7 @@
     <div>
         <h1>Edit User</h1>
         <h2>{{.Username}} {{.IsAdmin}}</h2>
-        <form name="editUser" fx-method='post' fx-action="/users/{{.Username}}" fx-target="#content" fx-swap='innerHTML'
+        <form id="editUser" fx-method='post' fx-action="/users/{{.Username}}" fx-target="#content" fx-swap='innerHTML'
             onsubmit="return valPass()">
             <label for="password">New Password: </label>
             <input type="password" placeholder="new password" name="password" required><br>
@@ -44,23 +45,31 @@
             {{ if .AsAdmin }}
             <label for="admin">Admin</label>
             <input type="checkbox" name="admin" {{ if .IsAdmin}} checked {{end}}><br><br>
-            <button type="button" fx-action="/users/" fx-target="#content">Cancel</button>
-            {{else}}
-            <button type="button" fx-action="/" fx-target="#main">Cancel</button>
             {{end }}
-            <button type="submit">Submit</button>
         </form>
-        <script>
-            function valPass() {
-                var x = document.forms["editUser"]["password"].value;
-                var y = document.forms["editUser"]["verify"].value;
-                console.log(x, y)
-                if (x != y) {
-                    alert("password are not the same");
-                    return false;
-                }
-            }
-        </script>
+        <button fx-action="/status/" fx-target="#content" fx-swap="innerHTML">Cancel</button>
+        <button form="editUser" type="submit">Submit</button>
+    </div>
+</div>
+{{end}}
+
+{{define "register"}}
+<div class="grid">
+    <div></div>
+    <div>
+        <h1>Timetrace Add User</h1>
+        <form id="register" fx-method="post" fx-action="/users/register/" fx-target="#content" fx-swap="innerHTML">
+            <label for="username">Username</label><br>
+            <input type="text" placeholder="enter username" name="username" required><br>
+            <label for="pass">Password</label><br>
+            <input type="password" placeholder="enter password" name="password" required><br>
+            <label for="admin">IsAdmin</label><br>
+            <input type="checkbox" name="admin"><br>
+        </form>
+        <p>
+            <button fx-action="/status/" fx-target="#content" fx-swap="innerHTML">Cancel</button>
+            <button form="register" type="submit">Add</button>
+        </p>
     </div>
 </div>
 {{end}}

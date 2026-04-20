@@ -23,6 +23,7 @@ func auth(next http.Handler) http.Handler {
 		}
 		ctx := context.WithValue(r.Context(), contextKey("user"), user)
 		saveCookie(user, w) // refresh cookie
+		slog.Info("auth: set user context", "user", user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

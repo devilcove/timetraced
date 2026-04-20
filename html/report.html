@@ -3,7 +3,7 @@
     <div class></div>
     <div>
         <h1>Reports</h1>
-        <form fx-method="post" fx-action="/reports/" fx-target="#content" fx-swap="innerHTML">
+        <form id="reports" fx-method="post" fx-action="/reports/" fx-target="#content" fx-swap="innerHTML">
             <p><label>Start Date</label></p>
             <p><input type="date" name="start" value="{{.DefaultDate}}" required></p>
             <p><label>End Date</label></p>
@@ -15,10 +15,11 @@
                     <option value="{{.}}">{{.}}</option>
                     {{end}}
                 </select></p>
-            <p><button onclick="location.href='/'">Cancel</button>
-                <button type="submit">Submit</button>
-            </p>
         </form>
+        <p>
+            <button fx-action="/status/" fx-target="#content" fx-swap="innerHTML">Cancel</button>
+            <button form="reports" type="submit">Submit</button>
+        </p>
     </div>
 </div>
 {{end}}
@@ -31,13 +32,13 @@
         {{range .}}
         <h2>Project {{.Project}}</h2>
         {{range .Items}}
-        <button fx-action="/records/{{ .ID }}" fx-target="#content" type="button">
+        <button fx-action="/records/{{ .ID }}" fx-target="#content" fx-swap="innerHTML">
             {{.Start.Format "Jan 02, 2006 15:04"}} &nbsp; {{.End.Format "Jan 02, 2006 15:04"}}
         </button><br>
         {{end}}
         <h2>{{.Total}}</h2>
         {{end}}
-        <button onclick="location.href='/'">Close</button>
+        <button fx-action="/status/" fx-target="#content" fx-swap="innerHTML">Close</button>
     </div>
 </div>
 {{end}}
@@ -56,7 +57,8 @@
             <input type="date" name="End" value='{{.End.Format "2006-01-02"}}'>
             <input type="time" name="EndTime" value='{{.End.Format "15:04"}}'>
 
-            <p><button onclick="location.href='/'">Cancel</button>
+            <p>
+                <button fx-action="/status/" fx-target="#content" fx-swap="innerHTML">Cancel</button>
                 <button type="submit">Submit</button>
             </p>
         </form>
