@@ -66,7 +66,7 @@ func TestGetAllUsers(t *testing.T) {
 		should.BeEqual(t, w.Result().StatusCode, http.StatusOK)
 		body, err := io.ReadAll(w.Result().Body)
 		should.BeNil(t, err)
-		should.ContainSubstring(t, string(body), "function valPass")
+		should.ContainSubstring(t, string(body), "return valPass")
 	})
 }
 

@@ -8,8 +8,10 @@ import (
 )
 
 func TestGetPage(t *testing.T) {
+	Version()
 	page := GetPage()
 	should.BeEqual(t, page.Version, "(devel)")
+	t.Log(page)
 }
 
 func TestTracking(t *testing.T) {

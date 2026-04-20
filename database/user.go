@@ -70,12 +70,3 @@ func DeleteUser(name string) error {
 	}
 	return nil
 }
-
-// IsAdmin returns true is username is an admin.
-func IsAdmin(username string) bool {
-	user, err := GetUser(username)
-	if err != nil {
-		return false
-	}
-	return user.IsAdmin
-}

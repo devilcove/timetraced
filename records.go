@@ -59,10 +59,6 @@ func getRecord(w http.ResponseWriter, r *http.Request) {
 }
 
 func editRecord(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		processError(w, http.StatusBadRequest, "invalid data")
-	}
-
 	edit := models.EditRecord{
 		ID:        r.PathValue("id"),
 		Start:     r.FormValue("Start"),

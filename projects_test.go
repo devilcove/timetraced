@@ -15,6 +15,17 @@ import (
 	"github.com/google/uuid"
 )
 
+func TestListProjects(t *testing.T) {
+	deleteAllProjects()
+	createAdmin()
+	createTestProjects()
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/projects/list/", nil)
+	r.AddCookie(adminLogin())
+	router.ServeHTTP(w, r)
+	should.BeEqual(t, w.Result().StatusCode, http.StatusOK)
+}
+
 func TestAddProject(t *testing.T) {
 	deleteAllProjects()
 	createAdmin()
