@@ -9,7 +9,7 @@ import (
 	"github.com/devilcove/timetraced/models"
 )
 
-func getReport(w http.ResponseWriter, r *http.Request) { //nolint:funlen
+func getReport(w http.ResponseWriter, r *http.Request) {
 	var err error
 	projectsToQuery := []string{}
 	user := getRequestUser(r)

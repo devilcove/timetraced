@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 	slog.SetDefault(log.Logger)
 	os.Setenv("USER", "")
 	os.Setenv("PASS", "")
-	os.Setenv("DB_FILE", "test.db") //nolint:errcheck,gosec
+	os.Setenv("DB_FILE", "test.db")
 	_ = database.InitializeDatabase()
 	defer database.Close()
 	router = setupRouter()

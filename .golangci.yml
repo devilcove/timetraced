@@ -5,6 +5,7 @@ linters:
   default: all
   disable:
     - depguard
+    - durationcheck
     - err113
     - exhaustruct
     - gochecknoglobals
@@ -20,8 +21,12 @@ linters:
     - wsl
     - wsl_v5
   settings:
-    cyclop:
-      max-complexity: 11
+    funlen:
+      lines: -1
+      statements: 45
+    gocritic:
+      disabled-checks:
+        - exitAfterDefer
     gosec:
       excludes:
         - G706
@@ -40,19 +45,12 @@ linters:
     generated: lax
     paths:
       - _test\.go
-      - third_party$
-      - builtin$
-      - examples$
 formatters:
   enable:
     - gofumpt
     - golines
   exclusions:
     generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
 issues:
   max-same-issues: 0
   max-issues-per-linter: 0

@@ -32,6 +32,7 @@ import (
 )
 
 func main() {
+	models.Version()
 	logger := logging.TextLogger(logging.TruncateSource(), logging.TimeFormat(time.DateTime))
 	slog.SetDefault(logger.Logger)
 	port, ok := os.LookupEnv("PORT")
@@ -48,7 +49,7 @@ func main() {
 	users, err := database.GetAllUsers()
 	if err != nil {
 		slog.Error("get users", "err", err)
-		os.Exit(1) //nolint:gocritic
+		os.Exit(1)
 	}
 	for _, user := range users {
 		project := database.GetActiveProject(user.Username)

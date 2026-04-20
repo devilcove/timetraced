@@ -11,8 +11,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const SessionAge = 60 * 60 * 8 // 8 hours in seconds
-
 func login(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	user.Username = r.FormValue("username")

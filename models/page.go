@@ -16,9 +16,8 @@ type Page struct {
 	DefaultDate string
 }
 
-// var pages map[string]Page
-
-func init() {
+// Version reads version info from executable.
+func Version() {
 	version = "unknown"
 	if info, ok := debug.ReadBuildInfo(); ok {
 		version = info.Main.Version

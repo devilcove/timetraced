@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	trackingActive map[string]bool
-	trackedProject map[string]string
+	trackingActive = map[string]bool{}
+	trackedProject = map[string]string{}
 )
 
 // Project represents a project.
@@ -22,11 +22,6 @@ type Project struct {
 // StartRequest is a request to start recording time for a given project.
 type StartRequest struct {
 	Project string
-}
-
-func init() {
-	trackingActive = make(map[string]bool)
-	trackedProject = make(map[string]string)
 }
 
 // IsTrackingActive checks if tracking has been activated for given user.

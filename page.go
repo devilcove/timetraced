@@ -13,6 +13,7 @@ import (
 func displayMain(w http.ResponseWriter, r *http.Request) {
 	user := getRequestUser(r)
 	page := populatePage(user.Username)
+	slog.Info("main page", "user", user.Username)
 	render(w, "layout", page)
 }
 

@@ -43,7 +43,7 @@ func (r *Record) Duration() time.Duration {
 func FmtDuration(d time.Duration) string {
 	d = d.Round(time.Minute)
 	h := d / time.Hour
-	d -= h * time.Hour //nolint:durationcheck
+	d -= h * time.Hour
 	m := d / time.Minute
 	dm := int(m) / 6
 	if m%6 != 0 {
