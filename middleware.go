@@ -31,7 +31,7 @@ func auth(next http.Handler) http.Handler {
 func getRequestUser(r *http.Request) models.User {
 	user, ok := r.Context().Value(contextKey("user")).(models.User)
 	if !ok {
-		slog.Error("get user from context", "value", r.Context().Value(contextKey("user")))
+		slog.Debug("get user from context", "value", r.Context().Value(contextKey("user")))
 	}
 	return user
 }
