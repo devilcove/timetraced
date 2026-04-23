@@ -17,9 +17,9 @@
             </tr>
         </table>
         {{ if .Tracking }}
-        <form fx-method="post" fx-action="projects/stop/" fx-target="#content" fx-swap="innerHTML">
-            <button ype="submit"><i class="fa fa-stopwatch"></i> Stop</button>
-        </form>
+        <button fx-method="post" fx-action="/projects/stop/" fx-target="#content" fx-swap="innerHTML">
+            <i class="fa fa-stopwatch"></i> Stop
+        </button>
         {{end}}
 
         <h2> Time worked today </h2>
