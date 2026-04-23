@@ -38,4 +38,11 @@ function valPass() {
     }
 }
 
+document.addEventListener("fx:config", (evt) => {
+    var msg = evt.target.getAttribute("ext-fx-confirm");
+    if (msg) {
+        evt.detail.cfg.confirm = () => confirm(msg)
+    }
+})
+
 applyTheme(current);

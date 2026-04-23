@@ -18,7 +18,7 @@
                 <td><i class="fa fa-edit" fx-action="/users/{{.Username}}" fx-target="#content" fx-swap="innerHTML"></i>
                 </td>
                 <td><i class="fa fa-user-slash" fx-method='delete' fx-action="/users/{{.Username}}" fx-target="#content"
-                        fx-swap='innerHTML' onsubmit="return confirm('delete user')"></i></td>
+                        fx-swap='innerHTML' ext-fx-confirm='delete user'></i></td>
             </tr>
             {{end}}
         </table>
